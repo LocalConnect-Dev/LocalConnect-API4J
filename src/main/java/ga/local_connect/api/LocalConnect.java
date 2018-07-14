@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 public class LocalConnect {
-    private static final String CONFIG_FILE = "swave.properties";
+    private static final String CONFIG_FILE = "local_connect.properties";
 
     private static SQLManager sql;
 
