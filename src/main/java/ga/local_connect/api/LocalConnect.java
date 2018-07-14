@@ -19,12 +19,11 @@ public class LocalConnect {
     public static void main(String[] args) {
         Log.setLog(new JettyLogger());
 
-        Properties conf;
+        var conf = new Properties();
         var file = new File(CONFIG_FILE);
         if (file.exists()) {
             try (var is = new FileInputStream(CONFIG_FILE);
                  var br = new BufferedReader(new InputStreamReader(is, "UTF-8"))) {
-                conf = new Properties();
                 conf.load(br);
                 Logger.success("Loaded config.");
             } catch (IOException e) {
@@ -33,7 +32,7 @@ public class LocalConnect {
                 return;
             }
         } else {
-            conf = new Properties();
+            Logger.success("Loaded default config.");
         }
 
         try {
