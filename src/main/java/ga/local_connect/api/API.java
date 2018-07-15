@@ -2,6 +2,7 @@ package ga.local_connect.api;
 import ga.local_connect.api.enumeration.APIErrorType;
 import ga.local_connect.api.exception.LocalConnectException;
 import ga.local_connect.api.http.HttpStatuses;
+import ga.local_connect.api.object.Profile;
 import ga.local_connect.api.object.Session;
 import ga.local_connect.api.object.User;
 import ga.local_connect.api.util.SQLManager;
@@ -48,6 +49,30 @@ public class API {
                     rs.getString("id"),
                     rs.getString("name"),
                     rs.getTimestamp("created_at")
+                );
+            }
+        }
+    }
+
+    public static Profile getProfile(User user) throws SQLException, LocalConnectException {
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `profiles` WHERE `user` = ?")) {
+            stmt.setString(1, user.getId());
+
+            try (var rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new LocalConnectException(
+                        HttpStatuses.NOT_FOUND,
+                        APIErrorType.PROFILE_NOT_FOUND
+                    );
+                }
+
+                return new Profile(
+                    rs.getString("id"),
+                    user,
+                    rs.getString("hobbies"),
+                    rs.getString("favorites"),
+                    rs.getString("mottoes"),
+                    rs.getTimestamp("updated_at")
                 );
             }
         }
