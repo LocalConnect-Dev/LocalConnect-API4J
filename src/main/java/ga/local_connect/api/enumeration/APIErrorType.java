@@ -12,6 +12,8 @@ public enum APIErrorType {
 
     ENDPOINT_NOT_FOUND,
 
+    REGION_NOT_FOUND,
+    GROUP_NOT_FOUND,
     USER_NOT_FOUND,
     PROFILE_NOT_FOUND,
 

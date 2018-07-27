@@ -6,13 +6,11 @@ import ga.local_connect.api.enumeration.APIErrorType;
 import ga.local_connect.api.enumeration.EndpointCategory;
 import ga.local_connect.api.enumeration.HttpMethodType;
 import ga.local_connect.api.exception.LocalConnectException;
-import ga.local_connect.api.object.CreatedSession;
-import ga.local_connect.api.object.Profile;
-import ga.local_connect.api.object.Session;
-import ga.local_connect.api.object.User;
+import ga.local_connect.api.object.*;
 import org.eclipse.jetty.server.Request;
 
 import java.sql.SQLException;
+import java.util.List;
 
 class Endpoints {
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.SESSIONS, name = "current")
@@ -41,5 +39,10 @@ class Endpoints {
         }
 
         return API.createSession(API.getUserByToken(token));
+    }
+
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.POSTS, name = "list_group")
+    public static List<Post> getGroupPosts(Request req) throws SQLException, LocalConnectException {
+        return API.getGroupPosts(getCurrentUser(req).getGroup());
     }
 }
