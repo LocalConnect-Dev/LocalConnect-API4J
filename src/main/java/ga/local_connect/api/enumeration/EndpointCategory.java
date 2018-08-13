@@ -4,6 +4,7 @@ public enum EndpointCategory {
     USERS,
     SESSIONS,
     BOARDS,
+    EVENTS,
     POSTS,
     PROFILES
 }

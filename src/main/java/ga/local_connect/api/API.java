@@ -172,6 +172,59 @@ public class API {
         return boards;
     }
 
+    public static List<Event> getEvents(User user) throws SQLException, LocalConnectException {
+        var events = new ArrayList<Event>();
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `events` WHERE `author` = (SELECT `id` FROM `users` WHERE `group` = ?)"
+                + " ORDER BY `id` DESC LIMIT ?"
+        )) {
+            stmt.setString(1, user.getId());
+            stmt.setInt(2, MAX_OBJECTS);
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    events.add(
+                        new Event(
+                            rs.getString("id"),
+                            getUser(rs.getString("author")),
+                            getDocument(rs.getString("document")),
+                            rs.getTimestamp("date"),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return events;
+    }
+
+    public static List<Post> getUserPosts(User user) throws SQLException, LocalConnectException {
+        var posts = new ArrayList<Post>();
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `posts` WHERE `author` = ?"
+                + " ORDER BY `id` DESC LIMIT ?"
+        )) {
+            stmt.setString(1, user.getId());
+            stmt.setInt(2, MAX_OBJECTS);
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    posts.add(
+                        new Post(
+                            rs.getString("id"),
+                            getUser(rs.getString("author")),
+                            getDocument(rs.getString("document")),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return posts;
+    }
+
     public static List<Post> getGroupPosts(Group group) throws SQLException, LocalConnectException {
         var posts = new ArrayList<Post>();
         try (var stmt = sql.getPreparedStatement(
