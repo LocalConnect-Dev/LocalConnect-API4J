@@ -41,6 +41,11 @@ class Endpoints {
         return API.createSession(API.getUserByToken(token));
     }
 
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.BOARDS, name = "list")
+    public static List<Board> getBoards(Request req) throws SQLException, LocalConnectException {
+        return API.getBoards(getCurrentUser(req).getGroup());
+    }
+
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.POSTS, name = "list_group")
     public static List<Post> getGroupPosts(Request req) throws SQLException, LocalConnectException {
         return API.getGroupPosts(getCurrentUser(req).getGroup());

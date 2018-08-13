@@ -146,6 +146,32 @@ public class API {
         }
     }
 
+    public static List<Board> getBoards(Group group) throws SQLException, LocalConnectException {
+        var boards = new ArrayList<Board>();
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `boards` WHERE `group` = ?"
+                + " ORDER BY `id` DESC LIMIT ?"
+        )) {
+            stmt.setString(1, group.getId());
+            stmt.setInt(2, MAX_OBJECTS);
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    boards.add(
+                        new Board(
+                            rs.getString("id"),
+                            group,
+                            getDocument(rs.getString("document")),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return boards;
+    }
+
     public static List<Post> getGroupPosts(Group group) throws SQLException, LocalConnectException {
         var posts = new ArrayList<Post>();
         try (var stmt = sql.getPreparedStatement(
