@@ -12,11 +12,11 @@ public class Board {
     private Document document;
     private Timestamp createdAt;
 
-    public Board(String id, Group group, Document document, Timestamp updatedAt) {
+    public Board(String id, Group group, Document document, Timestamp createdAt) {
         this.id = id;
         this.group = group;
         this.document = document;
-        this.createdAt = updatedAt;
+        this.createdAt = createdAt;
     }
 
     @JsonProperty

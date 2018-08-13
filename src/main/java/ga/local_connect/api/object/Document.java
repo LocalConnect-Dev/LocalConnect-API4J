@@ -11,14 +11,14 @@ public class Document {
     private User author;
     private String title;
     private String content;
-    private Timestamp updatedAt;
+    private Timestamp createdAt;
 
-    public Document(String id, User author, String title, String content, Timestamp updatedAt) {
+    public Document(String id, User author, String title, String content, Timestamp createdAt) {
         this.id = id;
         this.author = author;
         this.title = title;
         this.content = content;
-        this.updatedAt = updatedAt;
+        this.createdAt = createdAt;
     }
 
     @JsonProperty
@@ -41,9 +41,9 @@ public class Document {
         return content;
     }
 
-    @JsonProperty("updated_at")
+    @JsonProperty("created_at")
     @JsonSerialize(using = JsonTimestampSerializer.class)
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
+    public Timestamp getCreatedAt() {
+        return createdAt;
     }
 }

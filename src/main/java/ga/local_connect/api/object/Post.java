@@ -10,13 +10,13 @@ public class Post {
     private String id;
     private User author;
     private Document document;
-    private Timestamp updatedAt;
+    private Timestamp createdAt;
 
-    public Post(String id, User author, Document document, Timestamp updatedAt) {
+    public Post(String id, User author, Document document, Timestamp createdAt) {
         this.id = id;
         this.author = author;
         this.document = document;
-        this.updatedAt = updatedAt;
+        this.createdAt = createdAt;
     }
 
     @JsonProperty
@@ -34,9 +34,9 @@ public class Post {
         return document;
     }
 
-    @JsonProperty("updated_at")
+    @JsonProperty("created_at")
     @JsonSerialize(using = JsonTimestampSerializer.class)
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
+    public Timestamp getCreatedAt() {
+        return createdAt;
     }
 }
