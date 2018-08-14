@@ -172,13 +172,13 @@ public class API {
         return boards;
     }
 
-    public static List<Event> getEvents(User user) throws SQLException, LocalConnectException {
+    public static List<Event> getGroupEvents(Group group) throws SQLException, LocalConnectException {
         var events = new ArrayList<Event>();
         try (var stmt = sql.getPreparedStatement(
             "SELECT * FROM `events` WHERE `author` = (SELECT `id` FROM `users` WHERE `group` = ?)"
                 + " ORDER BY `id` DESC LIMIT ?"
         )) {
-            stmt.setString(1, user.getId());
+            stmt.setString(1, group.getId());
             stmt.setInt(2, MAX_OBJECTS);
 
             try (var rs = stmt.executeQuery()) {
