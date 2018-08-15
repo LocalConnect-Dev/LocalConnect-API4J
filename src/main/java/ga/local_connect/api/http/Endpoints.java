@@ -41,6 +41,19 @@ class Endpoints {
         return API.createSession(API.getUserByToken(token));
     }
 
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.BOARDS, name = "show")
+    public static Board getBoard(Request req) throws SQLException, LocalConnectException {
+        var id = req.getParameter("id");
+        if (id == null || id.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.getBoard(id);
+    }
+
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.BOARDS, name = "list")
     public static List<Board> getBoards(Request req) throws SQLException, LocalConnectException {
         return API.getBoards(getCurrentUser(req).getGroup());

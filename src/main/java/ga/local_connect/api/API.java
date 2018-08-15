@@ -146,6 +146,28 @@ public class API {
         }
     }
 
+    public static Board getBoard(String id) throws SQLException, LocalConnectException {
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `boards` WHERE `id` = ?")) {
+            stmt.setString(1, id);
+
+            try (var rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new LocalConnectException(
+                        HttpStatuses.NOT_FOUND,
+                        APIErrorType.USER_NOT_FOUND
+                    );
+                }
+
+                return new Board(
+                    rs.getString("id"),
+                    getGroup(rs.getString("group")),
+                    getDocument(rs.getString("document")),
+                    rs.getTimestamp("created_at")
+                );
+            }
+        }
+    }
+
     public static List<Board> getBoards(Group group) throws SQLException, LocalConnectException {
         var boards = new ArrayList<Board>();
         try (var stmt = sql.getPreparedStatement(
