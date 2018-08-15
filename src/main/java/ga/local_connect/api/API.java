@@ -197,7 +197,7 @@ public class API {
     public static List<Event> getGroupEvents(Group group) throws SQLException, LocalConnectException {
         var events = new ArrayList<Event>();
         try (var stmt = sql.getPreparedStatement(
-            "SELECT * FROM `events` WHERE `author` = (SELECT `id` FROM `users` WHERE `group` = ?)"
+            "SELECT * FROM `events` WHERE `author` in (SELECT `id` FROM `users` WHERE `group` = ?)"
                 + " ORDER BY `id` DESC LIMIT ?"
         )) {
             stmt.setString(1, group.getId());
@@ -250,7 +250,7 @@ public class API {
     public static List<Post> getGroupPosts(Group group) throws SQLException, LocalConnectException {
         var posts = new ArrayList<Post>();
         try (var stmt = sql.getPreparedStatement(
-            "SELECT * FROM `posts` WHERE `author` = (SELECT `id` FROM `users` WHERE `group` = ?)"
+            "SELECT * FROM `posts` WHERE `author` in (SELECT `id` FROM `users` WHERE `group` = ?)"
                 + " ORDER BY `id` DESC LIMIT ?"
         )) {
             stmt.setString(1, group.getId());
