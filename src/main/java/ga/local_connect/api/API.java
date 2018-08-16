@@ -180,7 +180,7 @@ public class API {
                 if (!rs.next()) {
                     throw new LocalConnectException(
                         HttpStatuses.NOT_FOUND,
-                        APIErrorType.USER_NOT_FOUND
+                        APIErrorType.BOARD_NOT_FOUND
                     );
                 }
 

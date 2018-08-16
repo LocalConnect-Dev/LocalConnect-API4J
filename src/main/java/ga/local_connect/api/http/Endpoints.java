@@ -28,7 +28,7 @@ class Endpoints {
         return API.getProfile(getCurrentUser(req));
     }
 
-    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.BOARDS, name = "show")
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.USERS, name = "show")
     public static User getUser(Request req) throws SQLException, LocalConnectException {
         var id = req.getParameter("id");
         if (id == null || id.isEmpty()) {
@@ -46,7 +46,7 @@ class Endpoints {
         return API.getUsers(getCurrentUser(req).getGroup());
     }
 
-    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.USERS, name = "show")
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.BOARDS, name = "show")
     public static Board getBoard(Request req) throws SQLException, LocalConnectException {
         var id = req.getParameter("id");
         if (id == null || id.isEmpty()) {
