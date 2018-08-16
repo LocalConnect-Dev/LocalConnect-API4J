@@ -12,15 +12,15 @@ public class Profile {
     private String hobbies;
     private String favorites;
     private String mottoes;
-    private Timestamp createdAt;
+    private Timestamp updatedAt;
 
-    public Profile(String id, User user, String hobbies, String favorites, String mottoes, Timestamp createdAt) {
+    public Profile(String id, User user, String hobbies, String favorites, String mottoes, Timestamp updatedAt) {
         this.id = id;
         this.user = user;
         this.hobbies = hobbies;
         this.favorites = favorites;
         this.mottoes = mottoes;
-        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     @JsonProperty
@@ -48,9 +48,9 @@ public class Profile {
         return mottoes;
     }
 
-    @JsonProperty("created_at")
+    @JsonProperty("updated_at")
     @JsonSerialize(using = JsonTimestampSerializer.class)
-    public Timestamp getCreatedAt() {
-        return createdAt;
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
     }
 }
