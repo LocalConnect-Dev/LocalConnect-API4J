@@ -79,7 +79,7 @@ public class API {
         }
     }
 
-    private static User getUser(String id) throws SQLException, LocalConnectException {
+    public static User getUser(String id) throws SQLException, LocalConnectException {
         try (var stmt = sql.getPreparedStatement("SELECT * FROM `users` WHERE `id` = ?")) {
             stmt.setString(1, id);
 
@@ -123,7 +123,33 @@ public class API {
         }
     }
 
-    private static Document getDocument(String id) throws SQLException, LocalConnectException {
+    public static List<User> getUsers(Group group) throws SQLException {
+        var users = new ArrayList<User>();
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `users` WHERE `group` = ?"
+                + " ORDER BY `id` DESC LIMIT ?"
+        )) {
+            stmt.setString(1, group.getId());
+            stmt.setInt(2, MAX_OBJECTS);
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    users.add(
+                        new User(
+                            rs.getString("id"),
+                            group,
+                            rs.getString("name"),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return users;
+    }
+
+    public static Document getDocument(String id) throws SQLException, LocalConnectException {
         try (var stmt = sql.getPreparedStatement("SELECT * FROM `documents` WHERE `id` = ?")) {
             stmt.setString(1, id);
 
@@ -314,5 +340,120 @@ public class API {
         }
 
         return new CreatedSession(id, user, secret, createdAt);
+    }
+
+    public static CreatedUser createUser(Group group, String name) throws SQLException {
+        var id = UUIDHelper.generate();
+        var token = UUIDHelper.generate();
+        var createdAt = new Timestamp(System.currentTimeMillis());
+
+        try (var stmt = sql.getPreparedStatement(
+            "INSERT INTO `users` (`id`, `group`, `name`, `token`, `created_at`) VALUES (?, ?, ?, ?, ?)"
+        )) {
+            stmt.setString(1, id);
+            stmt.setString(2, group.getId());
+            stmt.setString(3, name);
+            stmt.setString(4, token);
+            stmt.setTimestamp(5, createdAt);
+
+            stmt.executeUpdate();
+        }
+
+        return new CreatedUser(id, group, name, token, createdAt);
+    }
+
+    public static Document createDocument(User user, String title, String content) throws SQLException {
+        var id = UUIDHelper.generate();
+        var createdAt = new Timestamp(System.currentTimeMillis());
+
+        try (var stmt = sql.getPreparedStatement(
+            "INSERT INTO `documents` (`id`, `author`, `title`, `content`, `created_at`) VALUES (?, ?, ?, ?, ?)"
+        )) {
+            stmt.setString(1, id);
+            stmt.setString(2, user.getId());
+            stmt.setString(3, title);
+            stmt.setString(4, content);
+            stmt.setTimestamp(5, createdAt);
+
+            stmt.executeUpdate();
+        }
+
+        return new Document(id, user, title, content, createdAt);
+    }
+
+    public static Board createBoard(Group group, Document document) throws SQLException {
+        var id = UUIDHelper.generate();
+        var createdAt = new Timestamp(System.currentTimeMillis());
+
+        try (var stmt = sql.getPreparedStatement(
+            "INSERT INTO `boards` (`id`, `group`, `document`, `created_at`) VALUES (?, ?, ?, ?)"
+        )) {
+            stmt.setString(1, id);
+            stmt.setString(2, group.getId());
+            stmt.setString(3, document.getId());
+            stmt.setTimestamp(4, createdAt);
+
+            stmt.executeUpdate();
+        }
+
+        return new Board(id, group, document, createdAt);
+    }
+
+    public static Post createPost(User user, Document document) throws SQLException {
+        var id = UUIDHelper.generate();
+        var createdAt = new Timestamp(System.currentTimeMillis());
+
+        try (var stmt = sql.getPreparedStatement(
+            "INSERT INTO `posts` (`id`, `author`, `document`, `created_at`) VALUES (?, ?, ?, ?)"
+        )) {
+            stmt.setString(1, id);
+            stmt.setString(2, user.getId());
+            stmt.setString(3, document.getId());
+            stmt.setTimestamp(4, createdAt);
+
+            stmt.executeUpdate();
+        }
+
+        return new Post(id, user, document, createdAt);
+    }
+
+    public static Profile createProfile(User user, String hobbies, String favorites, String mottoes) throws SQLException {
+        String id;
+        var createdAt = new Timestamp(System.currentTimeMillis());
+
+        try {
+            id = getProfile(user).getId();
+
+            try (var stmt = sql.getPreparedStatement(
+                "UPDATE `profiles` SET `hobbies` = ?, `favorites` = ?, `mottoes` = ?, `updated_at` = ?"
+                    + " WHERE `id` = ?"
+            )) {
+                stmt.setString(1, hobbies);
+                stmt.setString(2, favorites);
+                stmt.setString(3, mottoes);
+                stmt.setTimestamp(4, createdAt);
+                stmt.setString(5, id);
+
+                stmt.executeUpdate();
+            }
+        } catch (LocalConnectException e) {
+            id = UUIDHelper.generate();
+
+            try (var stmt = sql.getPreparedStatement(
+                "INSERT INTO `profiles` (`id`, `user`, `hobbies`, `favorites`, `mottoes`, `updated_at`)"
+                    + " VALUES (?, ?, ?, ?, ?, ?)"
+            )) {
+                stmt.setString(1, id);
+                stmt.setString(2, user.getId());
+                stmt.setString(3, hobbies);
+                stmt.setString(4, favorites);
+                stmt.setString(5, mottoes);
+                stmt.setTimestamp(6, createdAt);
+
+                stmt.executeUpdate();
+            }
+        }
+
+        return new Profile(id, user, hobbies, favorites, mottoes, createdAt);
     }
 }

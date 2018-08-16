@@ -28,20 +28,25 @@ class Endpoints {
         return API.getProfile(getCurrentUser(req));
     }
 
-    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.SESSIONS, name = "create")
-    public static CreatedSession createSession(Request req) throws SQLException, LocalConnectException {
-        var token = req.getParameter("token");
-        if (token == null || token.isEmpty()) {
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.BOARDS, name = "show")
+    public static User getUser(Request req) throws SQLException, LocalConnectException {
+        var id = req.getParameter("id");
+        if (id == null || id.isEmpty()) {
             throw new LocalConnectException(
                 HttpStatuses.BAD_REQUEST,
                 APIErrorType.INVALID_PARAMETER
             );
         }
 
-        return API.createSession(API.getUserByToken(token));
+        return API.getUser(id);
     }
 
-    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.BOARDS, name = "show")
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.USERS, name = "list")
+    public static List<User> getUsers(Request req) throws SQLException, LocalConnectException {
+        return API.getUsers(getCurrentUser(req).getGroup());
+    }
+
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.USERS, name = "show")
     public static Board getBoard(Request req) throws SQLException, LocalConnectException {
         var id = req.getParameter("id");
         if (id == null || id.isEmpty()) {
@@ -72,5 +77,105 @@ class Endpoints {
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.POSTS, name = "list_group")
     public static List<Post> getGroupPosts(Request req) throws SQLException, LocalConnectException {
         return API.getGroupPosts(getCurrentUser(req).getGroup());
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.SESSIONS, name = "create")
+    public static CreatedSession createSession(Request req) throws SQLException, LocalConnectException {
+        var token = req.getParameter("token");
+        if (token == null || token.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.createSession(API.getUserByToken(token));
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.USERS, name = "create")
+    public static User createUser(Request req) throws SQLException, LocalConnectException {
+        var name = req.getParameter("name");
+        if (name == null || name.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.createUser(
+            getCurrentUser(req).getGroup(),
+            name
+        );
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.DOCUMENTS, name = "create")
+    public static Document createDocument(Request req) throws SQLException, LocalConnectException {
+        var title = req.getParameter("title");
+        var content = req.getParameter("content");
+        if (title == null || content == null || title.isEmpty() || content.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.createDocument(
+            getCurrentUser(req),
+            title,
+            content
+        );
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.BOARDS, name = "create")
+    public static Board createBoard(Request req) throws SQLException, LocalConnectException {
+        var document = req.getParameter("document");
+        if (document == null || document.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.createBoard(
+            getCurrentUser(req).getGroup(),
+            API.getDocument(document)
+        );
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.POSTS, name = "create")
+    public static Post createPost(Request req) throws SQLException, LocalConnectException {
+        var document = req.getParameter("document");
+        if (document == null || document.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.createPost(
+            getCurrentUser(req),
+            API.getDocument(document)
+        );
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.PROFILES, name = "create")
+    public static Profile createProfile(Request req) throws SQLException, LocalConnectException {
+        var hobbies = req.getParameter("hobbies");
+        var favorites = req.getParameter("favorites");
+        var mottoes = req.getParameter("mottoes");
+        if (hobbies == null || favorites == null || mottoes == null ||
+            hobbies.isEmpty() || favorites.isEmpty() || mottoes.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.createProfile(
+            getCurrentUser(req),
+            hobbies,
+            favorites,
+            mottoes
+        );
     }
 }
