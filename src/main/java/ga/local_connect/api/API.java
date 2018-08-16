@@ -127,7 +127,7 @@ public class API {
         var users = new ArrayList<User>();
         try (var stmt = sql.getPreparedStatement(
             "SELECT * FROM `users` WHERE `group` = ?"
-                + " ORDER BY `id` DESC LIMIT ?"
+                + " ORDER BY `created_at` DESC LIMIT ?"
         )) {
             stmt.setString(1, group.getId());
             stmt.setInt(2, MAX_OBJECTS);
@@ -198,7 +198,7 @@ public class API {
         var boards = new ArrayList<Board>();
         try (var stmt = sql.getPreparedStatement(
             "SELECT * FROM `boards` WHERE `group` = ?"
-                + " ORDER BY `id` DESC LIMIT ?"
+                + " ORDER BY `created_at` DESC LIMIT ?"
         )) {
             stmt.setString(1, group.getId());
             stmt.setInt(2, MAX_OBJECTS);
@@ -247,7 +247,7 @@ public class API {
         var events = new ArrayList<Event>();
         try (var stmt = sql.getPreparedStatement(
             "SELECT * FROM `events` WHERE `author` in (SELECT `id` FROM `users` WHERE `group` = ?)"
-                + " ORDER BY `id` DESC LIMIT ?"
+                + " ORDER BY `date` ASC LIMIT ?"
         )) {
             stmt.setString(1, group.getId());
             stmt.setInt(2, MAX_OBJECTS);
@@ -274,7 +274,7 @@ public class API {
         var posts = new ArrayList<Post>();
         try (var stmt = sql.getPreparedStatement(
             "SELECT * FROM `posts` WHERE `author` = ?"
-                + " ORDER BY `id` DESC LIMIT ?"
+                + " ORDER BY `created_at` DESC LIMIT ?"
         )) {
             stmt.setString(1, user.getId());
             stmt.setInt(2, MAX_OBJECTS);
@@ -300,7 +300,7 @@ public class API {
         var posts = new ArrayList<Post>();
         try (var stmt = sql.getPreparedStatement(
             "SELECT * FROM `posts` WHERE `author` in (SELECT `id` FROM `users` WHERE `group` = ?)"
-                + " ORDER BY `id` DESC LIMIT ?"
+                + " ORDER BY `created_at` DESC LIMIT ?"
         )) {
             stmt.setString(1, group.getId());
             stmt.setInt(2, MAX_OBJECTS);
