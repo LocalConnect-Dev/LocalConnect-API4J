@@ -10,6 +10,7 @@ import ga.local_connect.api.object.*;
 import org.eclipse.jetty.server.Request;
 
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.List;
 
 class Endpoints {
@@ -62,6 +63,19 @@ class Endpoints {
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.BOARDS, name = "list")
     public static List<Board> getBoards(Request req) throws SQLException, LocalConnectException {
         return API.getBoards(getCurrentUser(req).getGroup());
+    }
+
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.EVENTS, name = "show")
+    public static Event getEvent(Request req) throws SQLException, LocalConnectException {
+        var id = req.getParameter("id");
+        if (id == null || id.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.getEvent(id);
     }
 
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.EVENTS, name = "list")
@@ -139,6 +153,24 @@ class Endpoints {
         return API.createBoard(
             getCurrentUser(req).getGroup(),
             API.getDocument(document)
+        );
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.EVENTS, name = "create")
+    public static Event createEvent(Request req) throws SQLException, LocalConnectException {
+        var document = req.getParameter("document");
+        var dateStr = req.getParameter("date");
+        if (document == null || dateStr == null || document.isEmpty() || dateStr.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.createEvent(
+            getCurrentUser(req),
+            API.getDocument(document),
+            new Timestamp(Long.parseUnsignedLong(dateStr) * 1000)
         );
     }
 

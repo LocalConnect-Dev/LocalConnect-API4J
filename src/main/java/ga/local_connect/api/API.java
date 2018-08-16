@@ -220,6 +220,29 @@ public class API {
         return boards;
     }
 
+    public static Event getEvent(String id) throws SQLException, LocalConnectException {
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `events` WHERE `id` = ?")) {
+            stmt.setString(1, id);
+
+            try (var rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new LocalConnectException(
+                        HttpStatuses.NOT_FOUND,
+                        APIErrorType.EVENT_NOT_FOUND
+                    );
+                }
+
+                return new Event(
+                    rs.getString("id"),
+                    getUser(rs.getString("author")),
+                    getDocument(rs.getString("document")),
+                    rs.getTimestamp("date"),
+                    rs.getTimestamp("created_at")
+                );
+            }
+        }
+    }
+
     public static List<Event> getGroupEvents(Group group) throws SQLException, LocalConnectException {
         var events = new ArrayList<Event>();
         try (var stmt = sql.getPreparedStatement(
@@ -397,6 +420,25 @@ public class API {
         }
 
         return new Board(id, group, document, createdAt);
+    }
+
+    public static Event createEvent(User user, Document document, Timestamp date) throws SQLException {
+        var id = UUIDHelper.generate();
+        var createdAt = new Timestamp(System.currentTimeMillis());
+
+        try (var stmt = sql.getPreparedStatement(
+            "INSERT INTO `events` (`id`, `author`, `document`, `date`, `created_at`) VALUES (?, ?, ?, ?, ?)"
+        )) {
+            stmt.setString(1, id);
+            stmt.setString(2, user.getId());
+            stmt.setString(3, document.getId());
+            stmt.setTimestamp(4, date);
+            stmt.setTimestamp(5, createdAt);
+
+            stmt.executeUpdate();
+        }
+
+        return new Event(id, user, document, date, createdAt);
     }
 
     public static Post createPost(User user, Document document) throws SQLException {
