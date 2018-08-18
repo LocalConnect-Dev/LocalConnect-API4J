@@ -83,6 +83,19 @@ class Endpoints {
         return API.getGroupEvents(getCurrentUser(req).getGroup());
     }
 
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.EVENTS, name = "attendances")
+    public static List<EventAttendance> getEventAttendances(Request req) throws SQLException, LocalConnectException {
+        var eventId = req.getParameter("event");
+        if (eventId == null || eventId.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.getEventAttendances(API.getEvent(eventId));
+    }
+
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.POSTS, name = "list_user")
     public static List<Post> getUserPosts(Request req) throws SQLException, LocalConnectException {
         return API.getUserPosts(getCurrentUser(req));
@@ -208,6 +221,22 @@ class Endpoints {
             hobbies,
             favorites,
             mottoes
+        );
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.EVENTS, name = "join")
+    public static EventAttendance joinEvent(Request req) throws SQLException, LocalConnectException {
+        var eventId = req.getParameter("event");
+        if (eventId == null || eventId.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.joinEvent(
+            getCurrentUser(req),
+            API.getEvent(eventId)
         );
     }
 }

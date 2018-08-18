@@ -243,6 +243,28 @@ public class API {
         }
     }
 
+    public static List<EventAttendance> getEventAttendances(Event event) throws SQLException, LocalConnectException {
+        var attendances = new ArrayList<EventAttendance>();
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `event_attendances` WHERE `event` = ?")) {
+            stmt.setString(1, event.getId());
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    attendances.add(
+                        new EventAttendance(
+                            rs.getString("id"),
+                            getUser(rs.getString("user")),
+                            getEvent(rs.getString("event")),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return attendances;
+    }
+
     public static List<Event> getGroupEvents(Group group) throws SQLException, LocalConnectException {
         var events = new ArrayList<Event>();
         try (var stmt = sql.getPreparedStatement(
@@ -497,5 +519,23 @@ public class API {
         }
 
         return new Profile(id, user, hobbies, favorites, mottoes, createdAt);
+    }
+
+    public static EventAttendance joinEvent(User user, Event event) throws SQLException {
+        var id = UUIDHelper.generate();
+        var createdAt = new Timestamp(System.currentTimeMillis());
+
+        try (var stmt = sql.getPreparedStatement(
+            "INSERT INTO `event_attendances` (`id`, `user`, `event`, `created_at`) VALUES (?, ?, ?, ?)"
+        )) {
+            stmt.setString(1, id);
+            stmt.setString(2, user.getId());
+            stmt.setString(3, event.getId());
+            stmt.setTimestamp(4, createdAt);
+
+            stmt.executeUpdate();
+        }
+
+        return new EventAttendance(id, user, event, createdAt);
     }
 }
