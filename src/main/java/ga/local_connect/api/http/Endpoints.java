@@ -239,4 +239,20 @@ class Endpoints {
             API.getEvent(eventId)
         );
     }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.POSTS, name = "like")
+    public static Post likePost(Request req) throws SQLException, LocalConnectException {
+        var postId = req.getParameter("post");
+        if (postId == null || postId.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.likePost(
+            getCurrentUser(req),
+            API.getPost(postId)
+        );
+    }
 }

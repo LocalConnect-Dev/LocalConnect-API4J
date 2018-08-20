@@ -17,6 +17,7 @@ public enum APIErrorType {
     USER_NOT_FOUND,
     BOARD_NOT_FOUND,
     EVENT_NOT_FOUND,
+    POST_NOT_FOUND,
     PROFILE_NOT_FOUND,
 
     UNKNOWN_ERROR

@@ -5,20 +5,15 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import ga.local_connect.api.util.JsonTimestampSerializer;
 
 import java.sql.Timestamp;
-import java.util.List;
 
-public class Post {
+public class PostLike {
     private String id;
-    private User author;
-    private Document document;
-    private List<PostLike> likes;
+    private User user;
     private Timestamp createdAt;
 
-    public Post(String id, User author, Document document, List<PostLike> likes, Timestamp createdAt) {
+    public PostLike(String id, User user, Timestamp createdAt) {
         this.id = id;
-        this.author = author;
-        this.document = document;
-        this.likes = likes;
+        this.user = user;
         this.createdAt = createdAt;
     }
 
@@ -28,21 +23,11 @@ public class Post {
     }
 
     @JsonProperty
-    public User getAuthor() {
-        return author;
+    public User getUser() {
+        return user;
     }
 
     @JsonProperty
-    public Document getDocument() {
-        return document;
-    }
-
-    @JsonProperty
-    public List<PostLike> getLikes() {
-        return likes;
-    }
-
-    @JsonProperty("created_at")
     @JsonSerialize(using = JsonTimestampSerializer.class)
     public Timestamp getCreatedAt() {
         return createdAt;

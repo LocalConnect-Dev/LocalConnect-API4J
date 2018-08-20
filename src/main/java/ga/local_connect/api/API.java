@@ -292,6 +292,51 @@ public class API {
         return events;
     }
 
+    public static Post getPost(String id) throws SQLException, LocalConnectException {
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `posts` WHERE `id` = ?")) {
+            stmt.setString(1, id);
+
+            try (var rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new LocalConnectException(
+                        HttpStatuses.NOT_FOUND,
+                        APIErrorType.POST_NOT_FOUND
+                    );
+                }
+
+                id = rs.getString("id");
+                return new Post(
+                    id,
+                    getUser(rs.getString("author")),
+                    getDocument(rs.getString("document")),
+                    getPostLikes(id),
+                    rs.getTimestamp("created_at")
+                );
+            }
+        }
+    }
+
+    private static List<PostLike> getPostLikes(String postId) throws SQLException, LocalConnectException {
+        var likes = new ArrayList<PostLike>();
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `post_likes` WHERE `post` = ?")) {
+            stmt.setString(1, postId);
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    likes.add(
+                        new PostLike(
+                            rs.getString("id"),
+                            getUser(rs.getString("user")),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return likes;
+    }
+
     public static List<Post> getUserPosts(User user) throws SQLException, LocalConnectException {
         var posts = new ArrayList<Post>();
         try (var stmt = sql.getPreparedStatement(
@@ -303,11 +348,14 @@ public class API {
 
             try (var rs = stmt.executeQuery()) {
                 while (rs.next()) {
+                    var id = rs.getString("id");
+
                     posts.add(
                         new Post(
-                            rs.getString("id"),
+                            id,
                             getUser(rs.getString("author")),
                             getDocument(rs.getString("document")),
+                            getPostLikes(id),
                             rs.getTimestamp("created_at")
                         )
                     );
@@ -329,11 +377,14 @@ public class API {
 
             try (var rs = stmt.executeQuery()) {
                 while (rs.next()) {
+                    var id = rs.getString("id");
+
                     posts.add(
                         new Post(
-                            rs.getString("id"),
+                            id,
                             getUser(rs.getString("author")),
                             getDocument(rs.getString("document")),
+                            getPostLikes(id),
                             rs.getTimestamp("created_at")
                         )
                     );
@@ -478,7 +529,7 @@ public class API {
             stmt.executeUpdate();
         }
 
-        return new Post(id, user, document, createdAt);
+        return new Post(id, user, document, new ArrayList<>(), createdAt);
     }
 
     public static Profile createProfile(User user, String hobbies, String favorites, String mottoes) throws SQLException {
@@ -537,5 +588,23 @@ public class API {
         }
 
         return new EventAttendance(id, user, event, createdAt);
+    }
+
+    public static Post likePost(User user, Post post) throws SQLException, LocalConnectException {
+        var id = UUIDHelper.generate();
+        var createdAt = new Timestamp(System.currentTimeMillis());
+
+        try (var stmt = sql.getPreparedStatement(
+            "INSERT INTO `post_likes` (`id`, `user`, `post`, `created_at`) VALUES (?, ?, ?, ?)"
+        )) {
+            stmt.setString(1, id);
+            stmt.setString(2, user.getId());
+            stmt.setString(3, post.getId());
+            stmt.setTimestamp(4, createdAt);
+
+            stmt.executeUpdate();
+        }
+
+        return getPost(post.getId());
     }
 }
