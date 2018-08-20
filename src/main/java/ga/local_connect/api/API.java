@@ -232,21 +232,23 @@ public class API {
                     );
                 }
 
+                id = rs.getString("id");
                 return new Event(
-                    rs.getString("id"),
+                    id,
                     getUser(rs.getString("author")),
                     getDocument(rs.getString("document")),
                     rs.getTimestamp("date"),
+                    getEventAttendances(id),
                     rs.getTimestamp("created_at")
                 );
             }
         }
     }
 
-    public static List<EventAttendance> getEventAttendances(Event event) throws SQLException, LocalConnectException {
+    public static List<EventAttendance> getEventAttendances(String eventId) throws SQLException, LocalConnectException {
         var attendances = new ArrayList<EventAttendance>();
         try (var stmt = sql.getPreparedStatement("SELECT * FROM `event_attendances` WHERE `event` = ?")) {
-            stmt.setString(1, event.getId());
+            stmt.setString(1, eventId);
 
             try (var rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -254,7 +256,6 @@ public class API {
                         new EventAttendance(
                             rs.getString("id"),
                             getUser(rs.getString("user")),
-                            getEvent(rs.getString("event")),
                             rs.getTimestamp("created_at")
                         )
                     );
@@ -276,12 +277,15 @@ public class API {
 
             try (var rs = stmt.executeQuery()) {
                 while (rs.next()) {
+                    var id = rs.getString("id");
+
                     events.add(
                         new Event(
-                            rs.getString("id"),
+                            id,
                             getUser(rs.getString("author")),
                             getDocument(rs.getString("document")),
                             rs.getTimestamp("date"),
+                            getEventAttendances(id),
                             rs.getTimestamp("created_at")
                         )
                     );
@@ -511,7 +515,7 @@ public class API {
             stmt.executeUpdate();
         }
 
-        return new Event(id, user, document, date, createdAt);
+        return new Event(id, user, document, date, new ArrayList<>(), createdAt);
     }
 
     public static Post createPost(User user, Document document) throws SQLException {
@@ -572,7 +576,7 @@ public class API {
         return new Profile(id, user, hobbies, favorites, mottoes, createdAt);
     }
 
-    public static EventAttendance joinEvent(User user, Event event) throws SQLException {
+    public static Event joinEvent(User user, Event event) throws SQLException, LocalConnectException {
         var id = UUIDHelper.generate();
         var createdAt = new Timestamp(System.currentTimeMillis());
 
@@ -587,7 +591,7 @@ public class API {
             stmt.executeUpdate();
         }
 
-        return new EventAttendance(id, user, event, createdAt);
+        return getEvent(event.getId());
     }
 
     public static Post likePost(User user, Post post) throws SQLException, LocalConnectException {
