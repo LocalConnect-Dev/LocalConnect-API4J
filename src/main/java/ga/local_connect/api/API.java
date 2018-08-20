@@ -245,7 +245,7 @@ public class API {
         }
     }
 
-    public static List<EventAttendance> getEventAttendances(String eventId) throws SQLException, LocalConnectException {
+    private static List<EventAttendance> getEventAttendances(String eventId) throws SQLException, LocalConnectException {
         var attendances = new ArrayList<EventAttendance>();
         try (var stmt = sql.getPreparedStatement("SELECT * FROM `event_attendances` WHERE `event` = ?")) {
             stmt.setString(1, eventId);
