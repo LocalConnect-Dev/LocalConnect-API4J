@@ -8,7 +8,7 @@ public class CreatedUser extends User {
     private String token;
 
     public CreatedUser(String id, Group group, String name, String token, Timestamp createdAt) {
-        super(id, group, name, createdAt);
+        super(id, group, name, null, createdAt);
         this.token = token;
     }
 
