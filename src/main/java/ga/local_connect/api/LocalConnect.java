@@ -8,6 +8,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.log.Log;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -25,7 +26,7 @@ public class LocalConnect {
         var file = new File(CONFIG_FILE);
         if (file.exists()) {
             try (var is = new FileInputStream(CONFIG_FILE);
-                 var br = new BufferedReader(new InputStreamReader(is, "UTF-8"))) {
+                 var br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
                 conf.load(br);
                 Logger.success("Loaded config.");
             } catch (IOException e) {
@@ -43,8 +44,8 @@ public class LocalConnect {
             var user = conf.getProperty("SQL.User", "local_connect");
             var password = conf.getProperty("SQL.Password", "");
             var database = conf.getProperty("SQL.Database", "local_connect");
-            var port = Integer.valueOf(conf.getProperty("SQL.Port", "3306"));
-            var timeout = Integer.valueOf(conf.getProperty("SQL.Timeout", "1"));
+            var port = Integer.parseInt(conf.getProperty("SQL.Port", "3306"));
+            var timeout = Integer.parseInt(conf.getProperty("SQL.Timeout", "1"));
 
             sql = new SQLManager(
                 type, host, port, database, user, password, timeout
