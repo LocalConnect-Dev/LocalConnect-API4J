@@ -9,6 +9,7 @@ import ga.local_connect.api.exception.LocalConnectException;
 import ga.local_connect.api.object.*;
 import org.eclipse.jetty.server.Request;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
@@ -91,6 +92,19 @@ class Endpoints {
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.POSTS, name = "list_group")
     public static List<Post> getGroupPosts(Request req) throws SQLException, LocalConnectException {
         return API.getGroupPosts(getCurrentUser(req).getGroup());
+    }
+
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.IMAGES, name = "show")
+    public static byte[] getImage(Request req) throws IOException, LocalConnectException {
+        var id = req.getParameter("id");
+        if (id == null || id.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.getImageData(id);
     }
 
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.SESSIONS, name = "create")
@@ -209,6 +223,17 @@ class Endpoints {
             favorites,
             mottoes
         );
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.IMAGES, name = "create")
+    public static Image createImage(Request req) throws SQLException, IOException, LocalConnectException {
+        try (var stream = req.getInputStream()) {
+            var bytes = stream.readAllBytes();
+            return API.createImage(
+                getCurrentUser(req),
+                bytes
+            );
+        }
     }
 
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.EVENTS, name = "join")

@@ -6,6 +6,7 @@ import ga.local_connect.api.object.*;
 import ga.local_connect.api.util.SQLManager;
 import ga.local_connect.api.util.UUIDHelper;
 
+import java.io.*;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -95,6 +96,7 @@ public class API {
                     rs.getString("id"),
                     getGroup(rs.getString("group")),
                     rs.getString("name"),
+                    getImage(rs.getString("avatar")),
                     rs.getTimestamp("created_at")
                 );
             }
@@ -117,13 +119,14 @@ public class API {
                     rs.getString("id"),
                     getGroup(rs.getString("group")),
                     rs.getString("name"),
+                    getImage(rs.getString("avatar")),
                     rs.getTimestamp("created_at")
                 );
             }
         }
     }
 
-    public static List<User> getUsers(Group group) throws SQLException {
+    public static List<User> getUsers(Group group) throws SQLException, LocalConnectException {
         var users = new ArrayList<User>();
         try (var stmt = sql.getPreparedStatement(
             "SELECT * FROM `users` WHERE `group` = ?"
@@ -139,6 +142,7 @@ public class API {
                             rs.getString("id"),
                             group,
                             rs.getString("name"),
+                            getImage(rs.getString("avatar")),
                             rs.getTimestamp("created_at")
                         )
                     );
@@ -423,6 +427,47 @@ public class API {
         }
     }
 
+    private static Image getImage(String id) throws SQLException, LocalConnectException {
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `images` WHERE `id` = ?")) {
+            stmt.setString(1, id);
+
+            try (var rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new LocalConnectException(
+                        HttpStatuses.NOT_FOUND,
+                        APIErrorType.IMAGE_NOT_FOUND
+                    );
+                }
+
+                id = rs.getString("id");
+                return new Image(
+                    id,
+                    getUser(rs.getString("user")),
+                    rs.getTimestamp("created_at")
+                );
+            }
+        }
+    }
+
+    public static byte[] getImageData(String id) throws IOException, LocalConnectException {
+        var file = new File(LocalConnect.IMAGE_FILE_PREFIX + id + LocalConnect.IMAGE_FILE_SUFFIX);
+        var length = (int) file.length();
+        var data = new byte[length];
+
+        try (var stream = new FileInputStream(file)) {
+            if (stream.read(data) == length) {
+                return data;
+            } else {
+                throw new IOException();
+            }
+        } catch (FileNotFoundException e) {
+            throw new LocalConnectException(
+                HttpStatuses.NOT_FOUND,
+                APIErrorType.IMAGE_NOT_FOUND
+            );
+        }
+    }
+
     public static CreatedSession createSession(User user) throws SQLException {
         var id = UUIDHelper.generate();
         var secret = UUIDHelper.generate();
@@ -574,6 +619,36 @@ public class API {
         }
 
         return new Profile(id, user, hobbies, favorites, mottoes, createdAt);
+    }
+
+    public static Image createImage(User user, byte[] bytes) throws SQLException, IOException {
+        var id = UUIDHelper.generate();
+        var createdAt = new Timestamp(System.currentTimeMillis());
+        createImageData(id, bytes);
+
+        try (var stmt = sql.getPreparedStatement(
+            "INSERT INTO `images` (`id`, `owner`, `created_at`) VALUES (?, ?, ?)"
+        )) {
+            stmt.setString(1, id);
+            stmt.setString(2, user.getId());
+            stmt.setTimestamp(3, createdAt);
+
+            stmt.executeUpdate();
+        }
+
+        return new Image(id, user, createdAt);
+    }
+
+    private static void createImageData(String id, byte[] bytes) throws IOException {
+        var file = new File(LocalConnect.IMAGE_FILE_PREFIX + id + LocalConnect.IMAGE_FILE_SUFFIX);
+        if (!file.createNewFile()) {
+            throw new IOException();
+        }
+
+        try (var stream = new FileOutputStream(file)) {
+            stream.write(bytes);
+            stream.flush();
+        }
     }
 
     public static Event joinEvent(User user, Event event) throws SQLException, LocalConnectException {

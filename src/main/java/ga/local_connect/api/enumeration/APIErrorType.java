@@ -19,6 +19,8 @@ public enum APIErrorType {
     EVENT_NOT_FOUND,
     POST_NOT_FOUND,
     PROFILE_NOT_FOUND,
+    IMAGE_NOT_FOUND,
 
+    IO_ERROR,
     UNKNOWN_ERROR
 }

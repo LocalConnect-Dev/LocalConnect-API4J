@@ -6,18 +6,14 @@ import ga.local_connect.api.util.JsonTimestampSerializer;
 
 import java.sql.Timestamp;
 
-public class User {
+public class Image {
     private String id;
-    private Group group;
-    private String name;
-    private Image avatar;
+    private User owner;
     private Timestamp createdAt;
 
-    public User(String id, Group group, String name, Image avatar, Timestamp createdAt) {
+    public Image(String id, User owner, Timestamp createdAt) {
         this.id = id;
-        this.group = group;
-        this.name = name;
-        this.avatar = avatar;
+        this.owner = owner;
         this.createdAt = createdAt;
     }
 
@@ -27,18 +23,8 @@ public class User {
     }
 
     @JsonProperty
-    public Group getGroup() {
-        return group;
-    }
-
-    @JsonProperty
-    public String getName() {
-        return name;
-    }
-
-    @JsonProperty
-    public Image getAvatar() {
-        return avatar;
+    public User getOwner() {
+        return owner;
     }
 
     @JsonProperty("created_at")

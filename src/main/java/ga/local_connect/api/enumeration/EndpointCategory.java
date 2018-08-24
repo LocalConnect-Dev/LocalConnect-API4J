@@ -7,5 +7,6 @@ public enum EndpointCategory {
     BOARDS,
     EVENTS,
     POSTS,
-    PROFILES
+    PROFILES,
+    IMAGES
 }
