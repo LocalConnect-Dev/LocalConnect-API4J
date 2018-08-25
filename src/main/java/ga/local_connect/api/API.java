@@ -428,6 +428,10 @@ public class API {
     }
 
     private static Image getImage(String id) throws SQLException, LocalConnectException {
+        if (id == null) {
+            return null;
+        }
+
         try (var stmt = sql.getPreparedStatement("SELECT * FROM `images` WHERE `id` = ?")) {
             stmt.setString(1, id);
 
@@ -442,7 +446,6 @@ public class API {
                 id = rs.getString("id");
                 return new Image(
                     id,
-                    getUser(rs.getString("user")),
                     rs.getTimestamp("created_at")
                 );
             }
@@ -636,7 +639,7 @@ public class API {
             stmt.executeUpdate();
         }
 
-        return new Image(id, user, createdAt);
+        return new Image(id, createdAt);
     }
 
     private static void createImageData(String id, byte[] bytes) throws IOException {
