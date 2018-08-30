@@ -30,6 +30,24 @@ class Endpoints {
         return API.getProfile(getCurrentUser(req));
     }
 
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.REGIONS, name = "list")
+    public static List<Region> getRegions(Request req) throws SQLException {
+        return API.getRegions();
+    }
+
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.GROUPS, name = "list")
+    public static List<Group> getGroups(Request req) throws SQLException, LocalConnectException {
+        Region region;
+        var regionId = req.getParameter("region");
+        if (regionId == null || regionId.isEmpty()) {
+            region = getCurrentUser(req).getGroup().getRegion();
+        } else {
+            region = API.getRegion(regionId);
+        }
+
+        return API.getGroups(region);
+    }
+
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.USERS, name = "show")
     public static User getUser(Request req) throws SQLException, LocalConnectException {
         var id = req.getParameter("id");
@@ -45,7 +63,15 @@ class Endpoints {
 
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.USERS, name = "list")
     public static List<User> getUsers(Request req) throws SQLException, LocalConnectException {
-        return API.getUsers(getCurrentUser(req).getGroup());
+        Group group;
+        var groupId = req.getParameter("group");
+        if (groupId == null || groupId.isEmpty()) {
+            group = getCurrentUser(req).getGroup();
+        } else {
+            group = API.getGroup(groupId);
+        }
+
+        return API.getUsers(group);
     }
 
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.BOARDS, name = "show")

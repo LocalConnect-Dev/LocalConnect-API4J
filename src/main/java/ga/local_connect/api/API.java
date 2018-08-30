@@ -37,7 +37,7 @@ public class API {
         }
     }
 
-    private static Region getRegion(String id) throws SQLException, LocalConnectException {
+    public static Region getRegion(String id) throws SQLException, LocalConnectException {
         try (var stmt = sql.getPreparedStatement("SELECT * FROM `regions` WHERE `id` = ?")) {
             stmt.setString(1, id);
 
@@ -58,7 +58,26 @@ public class API {
         }
     }
 
-    private static Group getGroup(String id) throws SQLException, LocalConnectException {
+    public static List<Region> getRegions() throws SQLException {
+        var regions = new ArrayList<Region>();
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `regions`")) {
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    regions.add(
+                        new Region(
+                            rs.getString("id"),
+                            rs.getString("name"),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return regions;
+    }
+
+    public static Group getGroup(String id) throws SQLException, LocalConnectException {
         try (var stmt = sql.getPreparedStatement("SELECT * FROM `groups` WHERE `id` = ?")) {
             stmt.setString(1, id);
 
@@ -78,6 +97,28 @@ public class API {
                 );
             }
         }
+    }
+
+    public static List<Group> getGroups(Region region) throws SQLException {
+        var groups = new ArrayList<Group>();
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `groups` WHERE `region` = ?")) {
+            stmt.setString(1, region.getId());
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    groups.add(
+                        new Group(
+                            rs.getString("id"),
+                            region,
+                            rs.getString("name"),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return groups;
     }
 
     public static User getUser(String id) throws SQLException, LocalConnectException {
