@@ -120,6 +120,19 @@ class Endpoints {
         return API.getGroupPosts(getCurrentUser(req).getGroup());
     }
 
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.PROFILES, name = "show")
+    public static Profile getProfile(Request req) throws SQLException, LocalConnectException {
+        var userId = req.getParameter("user");
+        if (userId == null || userId.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.getProfile(API.getUser(userId));
+    }
+
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.IMAGES, name = "show")
     public static byte[] getImage(Request req) throws IOException, LocalConnectException {
         var id = req.getParameter("id");
