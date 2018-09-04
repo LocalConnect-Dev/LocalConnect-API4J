@@ -110,6 +110,16 @@ class Endpoints {
         return API.getGroupEvents(getCurrentUser(req).getGroup());
     }
 
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.EVENTS, name = "list_user")
+    public static List<Event> getUserEvents(Request req) throws SQLException, LocalConnectException {
+        return API.getUserEvents(getCurrentUser(req));
+    }
+
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.EVENTS, name = "list_joined")
+    public static List<Event> getJoinedEvents(Request req) throws SQLException, LocalConnectException {
+        return API.getUserEvents(getCurrentUser(req));
+    }
+
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.POSTS, name = "list_user")
     public static List<Post> getUserPosts(Request req) throws SQLException, LocalConnectException {
         return API.getUserPosts(getCurrentUser(req));

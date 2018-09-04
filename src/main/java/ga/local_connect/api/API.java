@@ -311,6 +311,66 @@ public class API {
         return attendances;
     }
 
+    public static List<Event> getUserEvents(User user) throws SQLException, LocalConnectException {
+        var events = new ArrayList<Event>();
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `events` WHERE `author` = ?"
+                + " ORDER BY `date` ASC LIMIT ?"
+        )) {
+            stmt.setString(1, user.getId());
+            stmt.setInt(2, MAX_OBJECTS);
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    var id = rs.getString("id");
+
+                    events.add(
+                        new Event(
+                            id,
+                            getUser(rs.getString("author")),
+                            getDocument(rs.getString("document")),
+                            rs.getTimestamp("date"),
+                            getEventAttendances(id),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return events;
+    }
+
+    public static List<Event> getJoinedEvents(User user) throws SQLException, LocalConnectException {
+        var events = new ArrayList<Event>();
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `events` WHERE `id` in (SELECT `event` FROM `event_attendances` WHERE `user` = ?)"
+                + " ORDER BY `date` ASC LIMIT ?"
+        )) {
+            stmt.setString(1, user.getId());
+            stmt.setInt(2, MAX_OBJECTS);
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    var id = rs.getString("id");
+
+                    events.add(
+                        new Event(
+                            id,
+                            getUser(rs.getString("author")),
+                            getDocument(rs.getString("document")),
+                            rs.getTimestamp("date"),
+                            getEventAttendances(id),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return events;
+    }
+
     public static List<Event> getGroupEvents(Group group) throws SQLException, LocalConnectException {
         var events = new ArrayList<Event>();
         try (var stmt = sql.getPreparedStatement(
