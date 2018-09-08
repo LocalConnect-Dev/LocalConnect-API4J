@@ -159,6 +159,7 @@ class Endpoints {
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.GROUPS, name = "create")
     public static Group createGroup(Request req) throws SQLException, LocalConnectException {
         var name = req.getParameter("name");
+        var regionId = req.getParameter("region");
         if (name == null || name.isEmpty()) {
             throw new LocalConnectException(
                 HttpStatuses.BAD_REQUEST,
@@ -166,8 +167,15 @@ class Endpoints {
             );
         }
 
+        Region region;
+        if (regionId == null || regionId.isEmpty()) {
+            region = getCurrentUser(req).getGroup().getRegion();
+        } else {
+            region = API.getRegion(regionId);
+        }
+
         return API.createGroup(
-            getCurrentUser(req).getGroup().getRegion(),
+            region,
             name
         );
     }
@@ -175,6 +183,7 @@ class Endpoints {
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.USERS, name = "create")
     public static User createUser(Request req) throws SQLException, LocalConnectException {
         var name = req.getParameter("name");
+        var groupId = req.getParameter("group");
         if (name == null || name.isEmpty()) {
             throw new LocalConnectException(
                 HttpStatuses.BAD_REQUEST,
@@ -182,8 +191,15 @@ class Endpoints {
             );
         }
 
+        Group group;
+        if (groupId == null || groupId.isEmpty()) {
+            group = getCurrentUser(req).getGroup();
+        } else {
+            group = API.getGroup(groupId);
+        }
+
         return API.createUser(
-            getCurrentUser(req).getGroup(),
+            group,
             name
         );
     }
