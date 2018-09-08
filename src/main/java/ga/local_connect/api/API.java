@@ -572,23 +572,22 @@ public class API {
         }
     }
 
-    public static CreatedSession createSession(User user) throws SQLException {
+    public static Group createGroup(Region region, String name) throws SQLException {
         var id = UUIDHelper.generate();
-        var secret = UUIDHelper.generate();
         var createdAt = new Timestamp(System.currentTimeMillis());
 
         try (var stmt = sql.getPreparedStatement(
-            "INSERT INTO `sessions` (`id`, `user`, `secret`, `created_at`) VALUES (?, ?, ?, ?)"
+            "INSERT INTO `groups` (`id`, `region`, `name`, `created_at`) VALUES (?, ?, ?, ?)"
         )) {
             stmt.setString(1, id);
-            stmt.setString(2, user.getId());
-            stmt.setString(3, secret);
+            stmt.setString(2, region.getId());
+            stmt.setString(3, name);
             stmt.setTimestamp(4, createdAt);
 
             stmt.executeUpdate();
         }
 
-        return new CreatedSession(id, user, secret, createdAt);
+        return new Group(id, region, name, createdAt);
     }
 
     public static CreatedUser createUser(Group group, String name) throws SQLException {
@@ -609,6 +608,25 @@ public class API {
         }
 
         return new CreatedUser(id, group, name, token, createdAt);
+    }
+
+    public static CreatedSession createSession(User user) throws SQLException {
+        var id = UUIDHelper.generate();
+        var secret = UUIDHelper.generate();
+        var createdAt = new Timestamp(System.currentTimeMillis());
+
+        try (var stmt = sql.getPreparedStatement(
+            "INSERT INTO `sessions` (`id`, `user`, `secret`, `created_at`) VALUES (?, ?, ?, ?)"
+        )) {
+            stmt.setString(1, id);
+            stmt.setString(2, user.getId());
+            stmt.setString(3, secret);
+            stmt.setTimestamp(4, createdAt);
+
+            stmt.executeUpdate();
+        }
+
+        return new CreatedSession(id, user, secret, createdAt);
     }
 
     public static Document createDocument(User user, String title, String content) throws SQLException {

@@ -156,17 +156,20 @@ class Endpoints {
         return API.getImageData(id);
     }
 
-    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.SESSIONS, name = "create")
-    public static CreatedSession createSession(Request req) throws SQLException, LocalConnectException {
-        var token = req.getParameter("token");
-        if (token == null || token.isEmpty()) {
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.GROUPS, name = "create")
+    public static Group createGroup(Request req) throws SQLException, LocalConnectException {
+        var name = req.getParameter("name");
+        if (name == null || name.isEmpty()) {
             throw new LocalConnectException(
                 HttpStatuses.BAD_REQUEST,
                 APIErrorType.INVALID_PARAMETER
             );
         }
 
-        return API.createSession(API.getUserByToken(token));
+        return API.createGroup(
+            getCurrentUser(req).getGroup().getRegion(),
+            name
+        );
     }
 
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.USERS, name = "create")
@@ -183,6 +186,19 @@ class Endpoints {
             getCurrentUser(req).getGroup(),
             name
         );
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.SESSIONS, name = "create")
+    public static CreatedSession createSession(Request req) throws SQLException, LocalConnectException {
+        var token = req.getParameter("token");
+        if (token == null || token.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.createSession(API.getUserByToken(token));
     }
 
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.DOCUMENTS, name = "create")
