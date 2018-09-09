@@ -572,6 +572,23 @@ public class API {
         }
     }
 
+    public static Region createRegion(String name) throws SQLException {
+        var id = UUIDHelper.generate();
+        var createdAt = new Timestamp(System.currentTimeMillis());
+
+        try (var stmt = sql.getPreparedStatement(
+            "INSERT INTO `regions` (`id`, `name`, `created_at`) VALUES (?, ?, ?)"
+        )) {
+            stmt.setString(1, id);
+            stmt.setString(2, name);
+            stmt.setTimestamp(3, createdAt);
+
+            stmt.executeUpdate();
+        }
+
+        return new Region(id, name, createdAt);
+    }
+
     public static Group createGroup(Region region, String name) throws SQLException {
         var id = UUIDHelper.generate();
         var createdAt = new Timestamp(System.currentTimeMillis());

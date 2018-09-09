@@ -182,6 +182,19 @@ class Endpoints {
         return API.getImageData(id);
     }
 
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.REGIONS, name = "create")
+    public static Region createRegion(Request req) throws SQLException, LocalConnectException {
+        var name = req.getParameter("name");
+        if (name == null || name.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.createRegion(name);
+    }
+
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.GROUPS, name = "create")
     public static Group createGroup(Request req) throws SQLException, LocalConnectException {
         var name = req.getParameter("name");
