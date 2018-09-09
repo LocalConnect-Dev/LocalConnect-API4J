@@ -48,6 +48,19 @@ class Endpoints {
         return API.getRegions();
     }
 
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.GROUPS, name = "show")
+    public static Group getGroup(Request req) throws SQLException, LocalConnectException {
+        var id = req.getParameter("id");
+        if (id == null || id.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.getGroup(id);
+    }
+
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.GROUPS, name = "list")
     public static List<Group> getGroups(Request req) throws SQLException, LocalConnectException {
         Region region;
