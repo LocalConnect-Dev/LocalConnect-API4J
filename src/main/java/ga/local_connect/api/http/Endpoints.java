@@ -30,6 +30,19 @@ class Endpoints {
         return API.getProfile(getCurrentUser(req));
     }
 
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.REGIONS, name = "show")
+    public static Region getRegion(Request req) throws SQLException, LocalConnectException {
+        var id = req.getParameter("id");
+        if (id == null || id.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.getRegion(id);
+    }
+
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.REGIONS, name = "list")
     public static List<Region> getRegions(Request req) throws SQLException {
         return API.getRegions();
