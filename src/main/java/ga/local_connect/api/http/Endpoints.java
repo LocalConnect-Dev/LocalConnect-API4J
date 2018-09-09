@@ -143,7 +143,7 @@ class Endpoints {
 
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.EVENTS, name = "list_joined")
     public static List<Event> getJoinedEvents(Request req) throws SQLException, LocalConnectException {
-        return API.getUserEvents(getCurrentUser(req));
+        return API.getJoinedEvents(getCurrentUser(req));
     }
 
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.POSTS, name = "list_user")
