@@ -528,7 +528,7 @@ public class API {
         }
     }
 
-    private static Image getImage(String id) throws SQLException, LocalConnectException {
+    public static Image getImage(String id) throws SQLException, LocalConnectException {
         if (id == null) {
             return null;
         }
@@ -787,6 +787,17 @@ public class API {
         try (var stream = new FileOutputStream(file)) {
             stream.write(bytes);
             stream.flush();
+        }
+    }
+
+    public static void setAvatar(User user, Image avatar) throws SQLException {
+        try (var stmt = sql.getPreparedStatement(
+            "UPDATE `users` SET `avatar` = ? WHERE `id` = ?"
+        )) {
+            stmt.setString(1, avatar.getId());
+            stmt.setString(2, user.getId());
+
+            stmt.executeUpdate();
         }
     }
 

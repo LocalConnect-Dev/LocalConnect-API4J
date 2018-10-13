@@ -356,6 +356,29 @@ class Endpoints {
         }
     }
 
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.USERS, name = "set_avatar")
+    public static User setAvatar(Request req) throws SQLException, LocalConnectException {
+        var userId = req.getParameter("user");
+        if (userId == null || userId.isEmpty()) {
+            userId = getCurrentUser(req).getId();
+        }
+
+        var avatarId = req.getParameter("avatar");
+        if (avatarId == null || userId.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        API.setAvatar(
+            API.getUser(userId),
+            API.getImage(avatarId)
+        );
+
+        return API.getUser(userId);
+    }
+
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.EVENTS, name = "join")
     public static Event joinEvent(Request req) throws SQLException, LocalConnectException {
         var eventId = req.getParameter("event");
