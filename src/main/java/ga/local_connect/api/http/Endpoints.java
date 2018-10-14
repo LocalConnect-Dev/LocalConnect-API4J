@@ -118,6 +118,19 @@ class Endpoints {
         return API.getBoards(getCurrentUser(req).getGroup());
     }
 
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.BOARDS, name = "reads")
+    public static List<BoardRead> getBoardReads(Request req) throws SQLException, LocalConnectException {
+        var id = req.getParameter("id");
+        if (id == null || id.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.getBoardReads(API.getBoard(id));
+    }
+
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.EVENTS, name = "show")
     public static Event getEvent(Request req) throws SQLException, LocalConnectException {
         var id = req.getParameter("id");
@@ -377,6 +390,22 @@ class Endpoints {
         );
 
         return API.getUser(userId);
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.BOARDS, name = "read")
+    public static BoardRead readBoard(Request req) throws SQLException, LocalConnectException {
+        var boardId = req.getParameter("board");
+        if (boardId == null || boardId.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.readBoard(
+            getCurrentUser(req),
+            API.getBoard(boardId)
+        );
     }
 
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.EVENTS, name = "join")
