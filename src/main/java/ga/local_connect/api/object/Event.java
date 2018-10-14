@@ -7,7 +7,7 @@ import ga.local_connect.api.util.JsonTimestampSerializer;
 import java.sql.Timestamp;
 import java.util.List;
 
-public class Event {
+public class Event implements Attachable {
     private String id;
     private User author;
     private Document document;

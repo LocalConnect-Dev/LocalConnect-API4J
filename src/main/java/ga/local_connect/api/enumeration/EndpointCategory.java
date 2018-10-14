@@ -11,5 +11,6 @@ public enum EndpointCategory {
     POSTS,
     PROFILES,
     IMAGES,
+    ATTACHMENTS,
     SERVICE
 }
