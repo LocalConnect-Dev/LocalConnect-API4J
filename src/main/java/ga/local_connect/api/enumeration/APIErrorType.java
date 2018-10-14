@@ -20,6 +20,7 @@ public enum APIErrorType {
     POST_NOT_FOUND,
     PROFILE_NOT_FOUND,
     IMAGE_NOT_FOUND,
+    SERVICE_NOT_FOUND,
 
     IO_ERROR,
     UNKNOWN_ERROR

@@ -182,6 +182,11 @@ class Endpoints {
         return API.getImageData(id);
     }
 
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.SERVICE, name = "show")
+    public static Service getService(Request req) throws SQLException, LocalConnectException {
+        return API.getService();
+    }
+
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.REGIONS, name = "create")
     public static Region createRegion(Request req) throws SQLException, LocalConnectException {
         var name = req.getParameter("name");
@@ -354,6 +359,19 @@ class Endpoints {
                 bytes
             );
         }
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.SERVICE, name = "edit")
+    public static Service editService(Request req) throws SQLException, LocalConnectException {
+        var description = req.getParameter("description");
+        if (description == null || description.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.editService(description);
     }
 
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.USERS, name = "set_avatar")

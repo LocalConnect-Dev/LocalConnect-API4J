@@ -572,6 +572,20 @@ public class API {
         }
     }
 
+    public static Service getService() throws SQLException, LocalConnectException {
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `service`");
+             var rs = stmt.executeQuery()) {
+            if (!rs.next()) {
+                throw new LocalConnectException(
+                    HttpStatuses.NOT_FOUND,
+                    APIErrorType.SERVICE_NOT_FOUND
+                );
+            }
+
+            return new Service(rs.getString("description"));
+        }
+    }
+
     public static Region createRegion(String name) throws SQLException {
         var id = UUIDHelper.generate();
         var createdAt = new Timestamp(System.currentTimeMillis());
@@ -788,6 +802,17 @@ public class API {
             stream.write(bytes);
             stream.flush();
         }
+    }
+
+    public static Service editService(String description) throws SQLException {
+        try (var stmt = sql.getPreparedStatement(
+            "UPDATE `service` SET `description` = ? LIMIT 1"
+        )) {
+            stmt.setString(1, description);
+            stmt.executeUpdate();
+        }
+
+        return new Service(description);
     }
 
     public static void setAvatar(User user, Image avatar) throws SQLException {

@@ -10,5 +10,6 @@ public enum EndpointCategory {
     EVENTS,
     POSTS,
     PROFILES,
-    IMAGES
+    IMAGES,
+    SERVICE
 }
