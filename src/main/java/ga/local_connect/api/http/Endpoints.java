@@ -12,6 +12,8 @@ import org.eclipse.jetty.server.Request;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 class Endpoints {
@@ -195,6 +197,11 @@ class Endpoints {
         return API.getImageData(id);
     }
 
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.SERVICE, name = "show")
+    public static Service getService(Request req) throws SQLException, LocalConnectException {
+        return API.getService();
+    }
+
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.REGIONS, name = "create")
     public static Region createRegion(Request req) throws SQLException, LocalConnectException {
         var name = req.getParameter("name");
@@ -280,10 +287,21 @@ class Endpoints {
             );
         }
 
+        var attachments = new ArrayList<Attachment>();
+        var attachmentIds = req.getParameter("attachments");
+        if (attachmentIds != null) {
+            for (var attachmentId : attachmentIds.split(",")) {
+                attachments.add(
+                    API.getAttachment(attachmentId)
+                );
+            }
+        }
+
         return API.createDocument(
             getCurrentUser(req),
             title,
-            content
+            content,
+            attachments
         );
     }
 
@@ -367,6 +385,54 @@ class Endpoints {
                 bytes
             );
         }
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.ATTACHMENTS, name = "create")
+    public static Attachment createAttachment(Request req) throws SQLException, LocalConnectException {
+        var type = req.getParameter("type");
+        var objectId = req.getParameter("object_id");
+        if (type == null || objectId == null || type.isEmpty() || objectId.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        Attachable object;
+        try {
+            var classType = Class.forName(Attachable.class.getPackageName().concat(".").concat(type));
+            if (!Arrays.asList(classType.getInterfaces()).contains(Attachable.class)) {
+                throw new ClassNotFoundException();
+            }
+
+            if (classType.equals(Image.class)) {
+                object = API.getImage(objectId);
+            } else if (classType.equals(Event.class)) {
+                object = API.getEvent(objectId);
+            } else {
+                throw new ClassNotFoundException();
+            }
+        } catch (ClassNotFoundException e) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_OBJECT_TYPE
+            );
+        }
+
+        return API.createAttachment(object);
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.SERVICE, name = "edit")
+    public static Service editService(Request req) throws SQLException, LocalConnectException {
+        var description = req.getParameter("description");
+        if (description == null || description.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.editService(description);
     }
 
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.USERS, name = "set_avatar")

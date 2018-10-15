@@ -6,7 +6,7 @@ import ga.local_connect.api.util.JsonTimestampSerializer;
 
 import java.sql.Timestamp;
 
-public class Image {
+public class Image implements Attachable {
     private String id;
     private Timestamp createdAt;
 

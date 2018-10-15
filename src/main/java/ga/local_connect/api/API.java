@@ -206,14 +206,74 @@ public class API {
                     );
                 }
 
+                id = rs.getString("id");
                 return new Document(
-                    rs.getString("id"),
+                    id,
                     getUser(rs.getString("author")),
                     rs.getString("title"),
                     rs.getString("content"),
+                    getDocumentAttachments(id),
                     rs.getTimestamp("created_at")
                 );
             }
+        }
+    }
+
+    private static List<Attachment> getDocumentAttachments(String documentId) throws SQLException, LocalConnectException {
+        var attachments = new ArrayList<Attachment>();
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `document_attachments` WHERE `document` = ?")) {
+            stmt.setString(1, documentId);
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    attachments.add(
+                        getAttachment(rs.getString("attachment"))
+                    );
+                }
+            }
+        }
+
+        return attachments;
+    }
+
+    public static Attachment getAttachment(String id) throws SQLException, LocalConnectException {
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `attachments` WHERE `id` = ?")) {
+            stmt.setString(1, id);
+
+            try (var rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new LocalConnectException(
+                        HttpStatuses.NOT_FOUND,
+                        APIErrorType.ATTACHMENT_NOT_FOUND
+                    );
+                }
+
+                var type = rs.getString("type");
+                return new Attachment(
+                    rs.getString("id"),
+                    type,
+                    getAttachmentObject(
+                        type,
+                        rs.getString("object_id")
+                    )
+                );
+            }
+        }
+    }
+
+    private static Attachable getAttachmentObject(String type, String objectId) throws SQLException, LocalConnectException {
+        switch (type) {
+            case "Image":
+                return getImage(objectId);
+
+            case "Event":
+                return getEvent(objectId);
+
+            default:
+                throw new LocalConnectException(
+                    HttpStatuses.INTERNAL_SERVER_ERROR,
+                    APIErrorType.INVALID_OBJECT_TYPE
+                );
         }
     }
 
@@ -596,6 +656,20 @@ public class API {
         }
     }
 
+    public static Service getService() throws SQLException, LocalConnectException {
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `service`");
+             var rs = stmt.executeQuery()) {
+            if (!rs.next()) {
+                throw new LocalConnectException(
+                    HttpStatuses.NOT_FOUND,
+                    APIErrorType.SERVICE_NOT_FOUND
+                );
+            }
+
+            return new Service(rs.getString("description"));
+        }
+    }
+
     public static Region createRegion(String name) throws SQLException {
         var id = UUIDHelper.generate();
         var createdAt = new Timestamp(System.currentTimeMillis());
@@ -670,7 +744,7 @@ public class API {
         return new CreatedSession(id, user, secret, createdAt);
     }
 
-    public static Document createDocument(User user, String title, String content) throws SQLException {
+    public static Document createDocument(User user, String title, String content, List<Attachment> attachments) throws SQLException {
         var id = UUIDHelper.generate();
         var createdAt = new Timestamp(System.currentTimeMillis());
 
@@ -686,7 +760,19 @@ public class API {
             stmt.executeUpdate();
         }
 
-        return new Document(id, user, title, content, createdAt);
+        for (var attachment : attachments) {
+            try (var stmt = sql.getPreparedStatement(
+                "INSERT INTO `document_attachments`(`id`, `document`, `attachment`) VALUES(?, ?, ?)"
+            )) {
+                stmt.setString(1, UUIDHelper.generate());
+                stmt.setString(2, id);
+                stmt.setString(3, attachment.getId());
+
+                stmt.executeUpdate();
+            }
+        }
+
+        return new Document(id, user, title, content, attachments, createdAt);
     }
 
     public static Board createBoard(Group group, Document document) throws SQLException {
@@ -812,6 +898,35 @@ public class API {
             stream.write(bytes);
             stream.flush();
         }
+    }
+
+    public static Attachment createAttachment(Attachable object) throws SQLException {
+        var id = UUIDHelper.generate();
+        var type = object.getClass().getSimpleName();
+        var objectId = object.getId();
+
+        try (var stmt = sql.getPreparedStatement(
+            "INSERT INTO `attachments`(`id`, `type`, `object_id`) VALUES(?, ?, ?)"
+        )) {
+            stmt.setString(1, id);
+            stmt.setString(2, type);
+            stmt.setString(3, objectId);
+
+            stmt.executeUpdate();
+        }
+
+        return new Attachment(id, type, object);
+    }
+
+    public static Service editService(String description) throws SQLException {
+        try (var stmt = sql.getPreparedStatement(
+            "UPDATE `service` SET `description` = ? LIMIT 1"
+        )) {
+            stmt.setString(1, description);
+            stmt.executeUpdate();
+        }
+
+        return new Service(description);
     }
 
     public static BoardRead readBoard(User user, Board board) throws SQLException {
