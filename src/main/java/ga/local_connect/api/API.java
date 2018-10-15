@@ -934,7 +934,7 @@ public class API {
         var createdAt = new Timestamp(System.currentTimeMillis());
 
         try (var stmt = sql.getPreparedStatement(
-            "INSERT INTO `board_reads`(`id`, `user`, board`, `created_at`) VALUES(?, ?, ?, ?)"
+            "INSERT INTO `board_reads`(`id`, `user`, `board`, `created_at`) VALUES(?, ?, ?, ?)"
         )) {
             stmt.setString(1, id);
             stmt.setString(2, user.getId());
