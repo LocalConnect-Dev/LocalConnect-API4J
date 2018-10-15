@@ -289,7 +289,7 @@ class Endpoints {
 
         var attachments = new ArrayList<Attachment>();
         var attachmentIds = req.getParameter("attachments");
-        if (attachmentIds != null) {
+        if (attachmentIds != null && !attachmentIds.isEmpty()) {
             for (var attachmentId : attachmentIds.split(",")) {
                 attachments.add(
                     API.getAttachment(attachmentId)
