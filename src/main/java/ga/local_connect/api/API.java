@@ -325,6 +325,30 @@ public class API {
         return boards;
     }
 
+    public static List<BoardRead> getBoardReads(Board board) throws SQLException, LocalConnectException {
+        var reads = new ArrayList<BoardRead>();
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `board_reads` WHERE `board` = ? ORDER BY `created_at` DESC"
+        )) {
+            stmt.setString(1, board.getId());
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    reads.add(
+                        new BoardRead(
+                            rs.getString("id"),
+                            getUser(rs.getString("user")),
+                            board,
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return reads;
+    }
+
     public static Event getEvent(String id) throws SQLException, LocalConnectException {
         try (var stmt = sql.getPreparedStatement("SELECT * FROM `events` WHERE `id` = ?")) {
             stmt.setString(1, id);
@@ -905,6 +929,24 @@ public class API {
         return new Service(description);
     }
 
+    public static BoardRead readBoard(User user, Board board) throws SQLException {
+        var id = UUIDHelper.generate();
+        var createdAt = new Timestamp(System.currentTimeMillis());
+
+        try (var stmt = sql.getPreparedStatement(
+            "INSERT INTO `board_reads`(`id`, `user`, `board`, `created_at`) VALUES(?, ?, ?, ?)"
+        )) {
+            stmt.setString(1, id);
+            stmt.setString(2, user.getId());
+            stmt.setString(3, board.getId());
+            stmt.setTimestamp(4, createdAt);
+
+            stmt.executeUpdate();
+        }
+
+        return new BoardRead(id, user, board, createdAt);
+    }
+
     public static void setAvatar(User user, Image avatar) throws SQLException {
         try (var stmt = sql.getPreparedStatement(
             "UPDATE `users` SET `avatar` = ? WHERE `id` = ?"
@@ -950,5 +992,14 @@ public class API {
         }
 
         return getPost(post.getId());
+    }
+
+    public static void destroySession(Session session) throws SQLException {
+        try (var stmt = sql.getPreparedStatement(
+            "DELETE FROM `sessions` WHERE `id` = ? LIMIT 1"
+        )) {
+            stmt.setString(1, session.getId());
+            stmt.executeUpdate();
+        }
     }
 }

@@ -62,6 +62,9 @@ public class HttpHandler extends AbstractHandler {
         } finally {
             if (obj == null) {
                 sRes.setStatus(HttpStatuses.NO_CONTENT);
+                try (var writer = sRes.getWriter()) {
+                    writer.flush();
+                }
             } else if (obj instanceof byte[]) {
                 sRes.setContentType("image/jpeg");
 
