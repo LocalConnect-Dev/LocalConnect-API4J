@@ -505,4 +505,9 @@ class Endpoints {
             API.getPost(postId)
         );
     }
+
+    @Endpoint(method = HttpMethodType.DELETE, category = EndpointCategory.SESSIONS, name = "destroy")
+    public static void destroySession(Request req) throws SQLException, LocalConnectException {
+        API.destroySession(getCurrentSession(req));
+    }
 }

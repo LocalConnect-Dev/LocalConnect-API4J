@@ -993,4 +993,13 @@ public class API {
 
         return getPost(post.getId());
     }
+
+    public static void destroySession(Session session) throws SQLException {
+        try (var stmt = sql.getPreparedStatement(
+            "DELETE FROM `sessions` WHERE `id` = ? LIMIT 1"
+        )) {
+            stmt.setString(1, session.getId());
+            stmt.executeUpdate();
+        }
+    }
 }
