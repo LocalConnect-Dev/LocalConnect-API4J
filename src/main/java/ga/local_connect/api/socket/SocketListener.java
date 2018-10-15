@@ -8,11 +8,16 @@ import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 
 @WebSocket
 public class SocketListener {
-    private Session session;
+    private Session socketSession;
+    private ga.local_connect.api.object.Session session;
+
+    SocketListener(ga.local_connect.api.object.Session session) {
+        this.session = session;
+    }
 
     @OnWebSocketConnect
-    public void onConnect(Session session) {
-        this.session = session;
+    public void onConnect(Session socketSession) {
+        this.socketSession = socketSession;
         SessionManager.getInstance().add(this);
         Logger.info(getRemoteAddress() + " joined.");
     }
@@ -24,11 +29,15 @@ public class SocketListener {
     }
 
     void send(String message) {
-        session.getRemote().sendStringByFuture(message);
+        socketSession.getRemote().sendStringByFuture(message);
     }
 
     private String getRemoteAddress() {
-        var address = session.getRemoteAddress();
+        var address = socketSession.getRemoteAddress();
         return address.getHostString() + ":" + address.getPort();
+    }
+
+    public ga.local_connect.api.object.Session getSession() {
+        return session;
     }
 }

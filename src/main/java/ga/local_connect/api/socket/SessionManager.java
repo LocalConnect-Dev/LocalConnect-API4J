@@ -1,7 +1,11 @@
 package ga.local_connect.api.socket;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import ga.local_connect.api.LocalConnect;
+import ga.local_connect.api.object.Group;
+import ga.local_connect.api.object.Notification;
 import ga.local_connect.api.task.KeepAliveTask;
+import ga.local_connect.api.util.JsonHelper;
 import ga.local_connect.api.util.Logger;
 
 import java.util.ArrayList;
@@ -51,6 +55,20 @@ public class SessionManager {
     public void broadcast(String message){
         for (SocketListener session : sessions) {
             session.send(message);
+        }
+    }
+
+    public void notify(Group group, Notification notification) {
+        try {
+            var json = JsonHelper.serialize(notification);
+            for (var session : sessions) {
+                if (session.getSession().getUser().getGroup().getId().equals(group.getId())) {
+                    session.send(json);
+                }
+            }
+        } catch (JsonProcessingException e) {
+            Logger.error("Failed to make JSON from the notification.");
+            e.printStackTrace();
         }
     }
 

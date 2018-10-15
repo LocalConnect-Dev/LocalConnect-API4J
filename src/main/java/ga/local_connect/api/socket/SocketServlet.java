@@ -8,6 +8,6 @@ public class SocketServlet extends WebSocketServlet {
 
     @Override
     public void configure(WebSocketServletFactory factory) {
-        factory.register(SocketListener.class);
+        factory.setCreator(new SocketCreator());
     }
 }
