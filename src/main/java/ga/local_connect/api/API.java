@@ -59,11 +59,9 @@ public class API {
         }
     }
 
-    private static List<Permission> getUserTypePermissions(String userTypeId) throws SQLException {
+    public static List<Permission> getPermissions() throws SQLException {
         var permissions = new ArrayList<Permission>();
-        try (var stmt = sql.getPreparedStatement("SELECT * FROM `type_permissions` WHERE `type` = ?")) {
-            stmt.setString(1, userTypeId);
-
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `permissions` ORDER BY `name` ASC")) {
             try (var rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     permissions.add(
@@ -71,6 +69,23 @@ public class API {
                             rs.getString("id"),
                             rs.getString("name")
                         )
+                    );
+                }
+            }
+        }
+
+        return permissions;
+    }
+
+    private static List<Permission> getUserTypePermissions(String userTypeId) throws SQLException, LocalConnectException {
+        var permissions = new ArrayList<Permission>();
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `type_permissions` WHERE `type` = ?")) {
+            stmt.setString(1, userTypeId);
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    permissions.add(
+                        getPermission(rs.getString("permission"))
                     );
                 }
             }
@@ -91,14 +106,37 @@ public class API {
                     );
                 }
 
+                id = rs.getString("id");
                 return new UserType(
-                    rs.getString("id"),
+                    id,
                     rs.getString("name"),
                     getUserTypePermissions(id),
                     rs.getTimestamp("created_at")
                 );
             }
         }
+    }
+
+    public static List<UserType> getUserTypes() throws SQLException, LocalConnectException {
+        var types = new ArrayList<UserType>();
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `types`")) {
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    var id = rs.getString("id");
+
+                    types.add(
+                        new UserType(
+                            id,
+                            rs.getString("name"),
+                            getUserTypePermissions(id),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return types;
     }
 
     public static Region getRegion(String id) throws SQLException, LocalConnectException {

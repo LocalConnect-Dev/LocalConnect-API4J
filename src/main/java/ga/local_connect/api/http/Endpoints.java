@@ -45,6 +45,11 @@ class Endpoints {
         return API.getPermission(id);
     }
 
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.PERMISSIONS, name = "list")
+    public static List<Permission> getPermissions(Request req) throws SQLException {
+        return API.getPermissions();
+    }
+
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.TYPES, name = "show")
     public static UserType getUserType(Request req) throws SQLException, LocalConnectException {
         var id = req.getParameter("id");
@@ -56,6 +61,11 @@ class Endpoints {
         }
 
         return API.getUserType(id);
+    }
+
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.TYPES, name = "list")
+    public static List<UserType> getUserTypes(Request req) throws SQLException, LocalConnectException {
+        return API.getUserTypes();
     }
 
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.REGIONS, name = "show")
