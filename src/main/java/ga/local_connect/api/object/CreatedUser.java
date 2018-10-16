@@ -7,8 +7,8 @@ import java.sql.Timestamp;
 public class CreatedUser extends User {
     private String token;
 
-    public CreatedUser(String id, Group group, String name, String token, Timestamp createdAt) {
-        super(id, group, name, null, createdAt);
+    public CreatedUser(String id, Group group, UserType type, String name, String token, Timestamp createdAt) {
+        super(id, group, type, name, null, createdAt);
         this.token = token;
     }
 

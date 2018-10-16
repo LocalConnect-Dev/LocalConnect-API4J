@@ -32,6 +32,32 @@ class Endpoints {
         return API.getProfile(getCurrentUser(req));
     }
 
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.PERMISSIONS, name = "show")
+    public static Permission getPermission(Request req) throws SQLException, LocalConnectException {
+        var id = req.getParameter("id");
+        if (id == null || id.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.getPermission(id);
+    }
+
+    @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.TYPES, name = "show")
+    public static UserType getUserType(Request req) throws SQLException, LocalConnectException {
+        var id = req.getParameter("id");
+        if (id == null || id.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.getUserType(id);
+    }
+
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.REGIONS, name = "show")
     public static Region getRegion(Request req) throws SQLException, LocalConnectException {
         var id = req.getParameter("id");
@@ -202,6 +228,45 @@ class Endpoints {
         return API.getService();
     }
 
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.PERMISSIONS, name = "create")
+    public static Permission createPermission(Request req) throws SQLException, LocalConnectException {
+        var name = req.getParameter("name");
+        if (name == null || name.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        return API.createPermission(name);
+    }
+
+    @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.TYPES, name = "create")
+    public static UserType createUserType(Request req) throws SQLException, LocalConnectException {
+        var name = req.getParameter("name");
+        if (name == null || name.isEmpty()) {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_PARAMETER
+            );
+        }
+
+        var permissions = new ArrayList<Permission>();
+        var permissionIds = req.getParameter("permissions");
+        if (permissionIds != null) {
+            for (var permissionId : permissionIds.split(",")) {
+                permissions.add(
+                    API.getPermission(permissionId)
+                );
+            }
+        }
+
+        return API.createUserType(
+            name,
+            permissions
+        );
+    }
+
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.REGIONS, name = "create")
     public static Region createRegion(Request req) throws SQLException, LocalConnectException {
         var name = req.getParameter("name");
@@ -243,7 +308,8 @@ class Endpoints {
     public static User createUser(Request req) throws SQLException, LocalConnectException {
         var name = req.getParameter("name");
         var groupId = req.getParameter("group");
-        if (name == null || name.isEmpty()) {
+        var typeId = req.getParameter("type");
+        if (name == null || typeId == null || name.isEmpty() || typeId.isEmpty()) {
             throw new LocalConnectException(
                 HttpStatuses.BAD_REQUEST,
                 APIErrorType.INVALID_PARAMETER
@@ -259,6 +325,7 @@ class Endpoints {
 
         return API.createUser(
             group,
+            API.getUserType(typeId),
             name
         );
     }

@@ -1,4 +1,5 @@
 package ga.local_connect.api;
+
 import ga.local_connect.api.enumeration.APIErrorType;
 import ga.local_connect.api.exception.LocalConnectException;
 import ga.local_connect.api.http.HttpStatuses;
@@ -31,6 +32,68 @@ public class API {
                 return new Session(
                     rs.getString("id"),
                     getUser(rs.getString("user")),
+                    rs.getTimestamp("created_at")
+                );
+            }
+        }
+    }
+
+    public static Permission getPermission(String id) throws SQLException, LocalConnectException {
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `permissions` WHERE `id` = ?")) {
+            stmt.setString(1, id);
+
+            try (var rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new LocalConnectException(
+                        HttpStatuses.NOT_FOUND,
+                        APIErrorType.PERMISSION_NOT_FOUND
+                    );
+                }
+
+                return new Permission(
+                    rs.getString("id"),
+                    rs.getString("name")
+                );
+            }
+        }
+    }
+
+    private static List<Permission> getUserTypePermissions(String userTypeId) throws SQLException {
+        var permissions = new ArrayList<Permission>();
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `type_permissions` WHERE `type` = ?")) {
+            stmt.setString(1, userTypeId);
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    permissions.add(
+                        new Permission(
+                            rs.getString("id"),
+                            rs.getString("name")
+                        )
+                    );
+                }
+            }
+        }
+
+        return permissions;
+    }
+
+    public static UserType getUserType(String id) throws SQLException, LocalConnectException {
+        try (var stmt = sql.getPreparedStatement("SELECT * FROM `types` WHERE `id` = ?")) {
+            stmt.setString(1, id);
+
+            try (var rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new LocalConnectException(
+                        HttpStatuses.NOT_FOUND,
+                        APIErrorType.TYPE_NOT_FOUND
+                    );
+                }
+
+                return new UserType(
+                    rs.getString("id"),
+                    rs.getString("name"),
+                    getUserTypePermissions(id),
                     rs.getTimestamp("created_at")
                 );
             }
@@ -136,6 +199,7 @@ public class API {
                 return new User(
                     rs.getString("id"),
                     getGroup(rs.getString("group")),
+                    getUserType(rs.getString("type")),
                     rs.getString("name"),
                     getImage(rs.getString("avatar")),
                     rs.getTimestamp("created_at")
@@ -159,6 +223,7 @@ public class API {
                 return new User(
                     rs.getString("id"),
                     getGroup(rs.getString("group")),
+                    getUserType(rs.getString("type")),
                     rs.getString("name"),
                     getImage(rs.getString("avatar")),
                     rs.getTimestamp("created_at")
@@ -182,6 +247,7 @@ public class API {
                         new User(
                             rs.getString("id"),
                             group,
+                            getUserType(rs.getString("type")),
                             rs.getString("name"),
                             getImage(rs.getString("avatar")),
                             rs.getTimestamp("created_at")
@@ -670,6 +736,49 @@ public class API {
         }
     }
 
+    public static Permission createPermission(String name) throws SQLException {
+        var id = UUIDHelper.generate();
+        try (var stmt = sql.getPreparedStatement(
+            "INSERT INTO `permissions` (`id`, `name`) VALUES (?, ?)"
+        )) {
+            stmt.setString(1, id);
+            stmt.setString(2, name);
+
+            stmt.executeUpdate();
+        }
+
+        return new Permission(id, name);
+    }
+
+    public static UserType createUserType(String name, List<Permission> permissions) throws SQLException {
+        var id = UUIDHelper.generate();
+        var createdAt = new Timestamp(System.currentTimeMillis());
+
+        try (var stmt = sql.getPreparedStatement(
+            "INSERT INTO `types` (`id`, `name`, `created_at`) VALUES (?, ?, ?)"
+        )) {
+            stmt.setString(1, id);
+            stmt.setString(2, name);
+            stmt.setTimestamp(3, createdAt);
+
+            stmt.executeUpdate();
+        }
+
+        for (var permission : permissions) {
+            try (var stmt = sql.getPreparedStatement(
+                "INSERT INTO `type_permissions`(`id`, `type`, `permission`) VALUES(?, ?, ?)"
+            )) {
+                stmt.setString(1, UUIDHelper.generate());
+                stmt.setString(2, id);
+                stmt.setString(3, permission.getId());
+
+                stmt.executeUpdate();
+            }
+        }
+
+        return new UserType(id, name, permissions, createdAt);
+    }
+
     public static Region createRegion(String name) throws SQLException {
         var id = UUIDHelper.generate();
         var createdAt = new Timestamp(System.currentTimeMillis());
@@ -705,24 +814,25 @@ public class API {
         return new Group(id, region, name, createdAt);
     }
 
-    public static CreatedUser createUser(Group group, String name) throws SQLException {
+    public static CreatedUser createUser(Group group, UserType type, String name) throws SQLException {
         var id = UUIDHelper.generate();
         var token = UUIDHelper.generate();
         var createdAt = new Timestamp(System.currentTimeMillis());
 
         try (var stmt = sql.getPreparedStatement(
-            "INSERT INTO `users` (`id`, `group`, `name`, `token`, `created_at`) VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO `users` (`id`, `group`, `type`, `name`, `token`, `created_at`) VALUES (?, ?, ?, ?, ?, ?)"
         )) {
             stmt.setString(1, id);
             stmt.setString(2, group.getId());
-            stmt.setString(3, name);
-            stmt.setString(4, token);
-            stmt.setTimestamp(5, createdAt);
+            stmt.setString(3, type.getId());
+            stmt.setString(4, name);
+            stmt.setString(5, token);
+            stmt.setTimestamp(6, createdAt);
 
             stmt.executeUpdate();
         }
 
-        return new CreatedUser(id, group, name, token, createdAt);
+        return new CreatedUser(id, group, type, name, token, createdAt);
     }
 
     public static CreatedSession createSession(User user) throws SQLException {

@@ -5,21 +5,18 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import ga.local_connect.api.util.JsonTimestampSerializer;
 
 import java.sql.Timestamp;
+import java.util.List;
 
-public class User {
+public class UserType {
     private String id;
-    private Group group;
-    private UserType type;
     private String name;
-    private Image avatar;
+    private List<Permission> permissions;
     private Timestamp createdAt;
 
-    public User(String id, Group group, UserType type, String name, Image avatar, Timestamp createdAt) {
+    public UserType(String id, String name, List<Permission> permissions, Timestamp createdAt) {
         this.id = id;
-        this.group = group;
-        this.type = type;
         this.name = name;
-        this.avatar = avatar;
+        this.permissions = permissions;
         this.createdAt = createdAt;
     }
 
@@ -29,23 +26,13 @@ public class User {
     }
 
     @JsonProperty
-    public Group getGroup() {
-        return group;
-    }
-
-    @JsonProperty
-    public UserType getType() {
-        return type;
-    }
-
-    @JsonProperty
     public String getName() {
         return name;
     }
 
     @JsonProperty
-    public Image getAvatar() {
-        return avatar;
+    public List<Permission> getPermissions() {
+        return permissions;
     }
 
     @JsonProperty("created_at")
