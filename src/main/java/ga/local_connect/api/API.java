@@ -4,6 +4,7 @@ import ga.local_connect.api.enumeration.APIErrorType;
 import ga.local_connect.api.exception.LocalConnectException;
 import ga.local_connect.api.http.HttpStatuses;
 import ga.local_connect.api.object.*;
+import ga.local_connect.api.socket.SessionManager;
 import ga.local_connect.api.util.SQLManager;
 import ga.local_connect.api.util.UUIDHelper;
 
@@ -900,7 +901,10 @@ public class API {
             stmt.executeUpdate();
         }
 
-        return new Board(id, group, document, createdAt);
+        var board = new Board(id, group, document, createdAt);
+        SessionManager.getInstance().notify(group, new Notification(board));
+
+        return board;
     }
 
     public static Event createEvent(User user, Document document, Timestamp date) throws SQLException {
@@ -919,7 +923,10 @@ public class API {
             stmt.executeUpdate();
         }
 
-        return new Event(id, user, document, date, new ArrayList<>(), createdAt);
+        var event = new Event(id, user, document, date, new ArrayList<>(), createdAt);
+        SessionManager.getInstance().notify(user.getGroup(), new Notification(event));
+
+        return event;
     }
 
     public static Post createPost(User user, Document document) throws SQLException {

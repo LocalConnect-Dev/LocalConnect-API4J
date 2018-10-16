@@ -1,10 +1,14 @@
 package ga.local_connect.api;
 
 import ga.local_connect.api.http.HttpHandler;
+import ga.local_connect.api.socket.SocketServlet;
 import ga.local_connect.api.util.JettyLogger;
 import ga.local_connect.api.util.Logger;
 import ga.local_connect.api.util.SQLManager;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.log.Log;
 
 import java.io.*;
@@ -17,17 +21,18 @@ public class LocalConnect {
     static final String IMAGE_FILE_PREFIX = "Images/";
     static final String IMAGE_FILE_SUFFIX = ".jpg";
 
+    private static Properties config;
     private static SQLManager sql;
 
     public static void main(String[] args) {
         Log.setLog(new JettyLogger());
 
-        var conf = new Properties();
+        config = new Properties();
         var file = new File(CONFIG_FILE);
         if (file.exists()) {
             try (var is = new FileInputStream(CONFIG_FILE);
                  var br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-                conf.load(br);
+                config.load(br);
                 Logger.success("Loaded config.");
             } catch (IOException e) {
                 Logger.error("Failed to load config.");
@@ -39,13 +44,13 @@ public class LocalConnect {
         }
 
         try {
-            var type = conf.getProperty("SQL.Type", "mysql");
-            var host = conf.getProperty("SQL.Host", "localhost");
-            var user = conf.getProperty("SQL.User", "local_connect");
-            var password = conf.getProperty("SQL.Password", "");
-            var database = conf.getProperty("SQL.Database", "local_connect");
-            var port = Integer.parseInt(conf.getProperty("SQL.Port", "3306"));
-            var timeout = Integer.parseInt(conf.getProperty("SQL.Timeout", "1"));
+            var type = config.getProperty("SQL.Type", "mysql");
+            var host = config.getProperty("SQL.Host", "localhost");
+            var user = config.getProperty("SQL.User", "local_connect");
+            var password = config.getProperty("SQL.Password", "");
+            var database = config.getProperty("SQL.Database", "local_connect");
+            var port = Integer.parseInt(config.getProperty("SQL.Port", "3306"));
+            var timeout = Integer.parseInt(config.getProperty("SQL.Timeout", "1"));
 
             sql = new SQLManager(
                 type, host, port, database, user, password, timeout
@@ -59,7 +64,7 @@ public class LocalConnect {
         }
 
         try {
-            var server = new Server(Integer.valueOf(conf.getProperty("Http.Port", "8080")));
+            var server = new Server(Integer.valueOf(config.getProperty("Http.Port", "8080")));
             var handler = new HttpHandler();
 
             server.setHandler(handler);
@@ -72,7 +77,29 @@ public class LocalConnect {
             return;
         }
 
+        try {
+            var server = new Server(Integer.valueOf(config.getProperty("WebSocket.Port", "8888")));
+            var handlers = new HandlerCollection();
+            var servlet = new SocketServlet();
+            var handler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+
+            handler.addServlet(new ServletHolder(servlet), "/");
+            handlers.addHandler(handler);
+            server.setHandler(handlers);
+            server.start();
+
+            Logger.success("Started WebSocket server.");
+        } catch (Exception e) {
+            Logger.error("Failed to start WebSocket server.");
+            e.printStackTrace();
+            return;
+        }
+
         Logger.success("Ready.");
+    }
+
+    public static Properties getConfig() {
+        return config;
     }
 
     static SQLManager getSQL() {
