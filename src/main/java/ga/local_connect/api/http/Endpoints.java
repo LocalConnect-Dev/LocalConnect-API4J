@@ -293,8 +293,8 @@ class Endpoints {
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.GROUPS, name = "create")
     public static Group createGroup(Request req) throws SQLException, LocalConnectException {
         var name = req.getParameter("name");
-        var regionId = req.getParameter("region");
-        if (name == null || name.isEmpty()) {
+        var description = req.getParameter("description");
+        if (name == null || description == null || name.isEmpty() || description.isEmpty()) {
             throw new LocalConnectException(
                 HttpStatuses.BAD_REQUEST,
                 APIErrorType.INVALID_PARAMETER
@@ -302,16 +302,27 @@ class Endpoints {
         }
 
         Region region;
+        var regionId = req.getParameter("region");
         if (regionId == null || regionId.isEmpty()) {
             region = getCurrentUser(req).getGroup().getRegion();
         } else {
             region = API.getRegion(regionId);
         }
 
-        return API.createGroup(
-            region,
-            name
-        );
+        var groupId = req.getParameter("id");
+        if (groupId == null || groupId.isEmpty()) {
+            return API.createGroup(
+                region,
+                name,
+                description
+            );
+        } else {
+            return API.editGroup(
+                API.getGroup(groupId),
+                name,
+                description
+            );
+        }
     }
 
     @Endpoint(method = HttpMethodType.POST, category = EndpointCategory.USERS, name = "create")

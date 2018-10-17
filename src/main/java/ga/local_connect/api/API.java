@@ -195,6 +195,7 @@ public class API {
                     rs.getString("id"),
                     getRegion(rs.getString("region")),
                     rs.getString("name"),
+                    rs.getString("description"),
                     rs.getTimestamp("created_at")
                 );
             }
@@ -213,6 +214,7 @@ public class API {
                             rs.getString("id"),
                             region,
                             rs.getString("name"),
+                            rs.getString("description"),
                             rs.getTimestamp("created_at")
                         )
                     );
@@ -835,22 +837,23 @@ public class API {
         return new Region(id, name, createdAt);
     }
 
-    public static Group createGroup(Region region, String name) throws SQLException {
+    public static Group createGroup(Region region, String name, String description) throws SQLException {
         var id = UUIDHelper.generate();
         var createdAt = new Timestamp(System.currentTimeMillis());
 
         try (var stmt = sql.getPreparedStatement(
-            "INSERT INTO `groups` (`id`, `region`, `name`, `created_at`) VALUES (?, ?, ?, ?)"
+            "INSERT INTO `groups` (`id`, `region`, `name`, `description`, `created_at`) VALUES (?, ?, ?, ?, ?)"
         )) {
             stmt.setString(1, id);
             stmt.setString(2, region.getId());
             stmt.setString(3, name);
-            stmt.setTimestamp(4, createdAt);
+            stmt.setString(4, description);
+            stmt.setTimestamp(5, createdAt);
 
             stmt.executeUpdate();
         }
 
-        return new Group(id, region, name, createdAt);
+        return new Group(id, region, name, description, createdAt);
     }
 
     public static CreatedUser createUser(Group group, UserType type, String name) throws SQLException {
@@ -1071,6 +1074,26 @@ public class API {
         }
 
         return new Attachment(id, type, object);
+    }
+
+    public static Group editGroup(Group group, String name, String description) throws SQLException {
+        try (var stmt = sql.getPreparedStatement(
+            "UPDATE `groups` SET `name` = ?, `description` = ? WHERE `id` = ?"
+        )) {
+            stmt.setString(1, name);
+            stmt.setString(2, description);
+            stmt.setString(3, group.getId());
+
+            stmt.executeUpdate();
+        }
+
+        return new Group(
+            group.getId(),
+            group.getRegion(),
+            group.getName(),
+            group.getDescription(),
+            group.getCreatedAt()
+        );
     }
 
     public static Service editService(String description) throws SQLException {

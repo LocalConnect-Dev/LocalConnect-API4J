@@ -10,12 +10,14 @@ public class Group {
     private String id;
     private Region region;
     private String name;
+    private String description;
     private Timestamp createdAt;
 
-    public Group(String id, Region region, String name, Timestamp createdAt) {
+    public Group(String id, Region region, String name, String description, Timestamp createdAt) {
         this.id = id;
         this.region = region;
         this.name = name;
+        this.description = description;
         this.createdAt = createdAt;
     }
 
@@ -32,6 +34,11 @@ public class Group {
     @JsonProperty
     public String getName() {
         return name;
+    }
+
+    @JsonProperty
+    public String getDescription() {
+        return description;
     }
 
     @JsonProperty("updated_at")
