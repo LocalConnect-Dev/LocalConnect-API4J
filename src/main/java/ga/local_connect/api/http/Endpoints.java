@@ -211,7 +211,14 @@ class Endpoints {
 
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.POSTS, name = "list_user")
     public static List<Post> getUserPosts(Request req) throws SQLException, LocalConnectException {
-        var user = getCurrentUser(req);
+        User user;
+        var userId = req.getParameter("user");
+        if (userId == null || userId.isEmpty()) {
+            user = getCurrentUser(req);
+        } else {
+            user = API.getUser(userId);
+        }
+
         var until = req.getParameter("until");
         if (until == null || until.isEmpty()) {
             return API.getUserPosts(user);
