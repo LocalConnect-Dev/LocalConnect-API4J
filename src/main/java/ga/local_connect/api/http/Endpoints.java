@@ -153,7 +153,13 @@ class Endpoints {
 
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.BOARDS, name = "list")
     public static List<Board> getBoards(Request req) throws SQLException, LocalConnectException {
-        return API.getBoards(getCurrentUser(req).getGroup());
+        var group = getCurrentUser(req).getGroup();
+        var until = req.getParameter("until");
+        if (until == null || until.isEmpty()) {
+            return API.getBoards(group);
+        } else {
+            return API.getBoards(group, until);
+        }
     }
 
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.BOARDS, name = "reads")
@@ -184,7 +190,13 @@ class Endpoints {
 
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.EVENTS, name = "list")
     public static List<Event> getEvents(Request req) throws SQLException, LocalConnectException {
-        return API.getGroupEvents(getCurrentUser(req).getGroup());
+        var group = getCurrentUser(req).getGroup();
+        var until = req.getParameter("until");
+        if (until == null || until.isEmpty()) {
+            return API.getGroupEvents(group);
+        } else {
+            return API.getGroupEvents(group, until);
+        }
     }
 
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.EVENTS, name = "list_user")
@@ -199,12 +211,24 @@ class Endpoints {
 
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.POSTS, name = "list_user")
     public static List<Post> getUserPosts(Request req) throws SQLException, LocalConnectException {
-        return API.getUserPosts(getCurrentUser(req));
+        var user = getCurrentUser(req);
+        var until = req.getParameter("until");
+        if (until == null || until.isEmpty()) {
+            return API.getUserPosts(user);
+        } else {
+            return API.getUserPosts(user, until);
+        }
     }
 
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.POSTS, name = "list_group")
     public static List<Post> getGroupPosts(Request req) throws SQLException, LocalConnectException {
-        return API.getGroupPosts(getCurrentUser(req).getGroup());
+        var group = getCurrentUser(req).getGroup();
+        var until = req.getParameter("until");
+        if (until == null || until.isEmpty()) {
+            return API.getGroupPosts(group);
+        } else {
+            return API.getGroupPosts(group, until);
+        }
     }
 
     @Endpoint(method = HttpMethodType.GET, category = EndpointCategory.PROFILES, name = "show")

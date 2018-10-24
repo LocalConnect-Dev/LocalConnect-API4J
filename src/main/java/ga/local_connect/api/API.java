@@ -432,6 +432,52 @@ public class API {
         return boards;
     }
 
+    public static List<Board> getBoards(Group group, String untilId) throws SQLException, LocalConnectException {
+        Timestamp until;
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `boards` WHERE `id` = ?"
+        )) {
+            stmt.setString(1, untilId);
+
+            try (var rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new LocalConnectException(
+                        HttpStatuses.NOT_FOUND,
+                        APIErrorType.BOARD_NOT_FOUND
+                    );
+                }
+
+                until = rs.getTimestamp("created_at");
+            }
+        }
+
+        var boards = new ArrayList<Board>();
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `boards` WHERE `group` = ?"
+                + " AND `created_at` < ?"
+                + " ORDER BY `created_at` DESC LIMIT ?"
+        )) {
+            stmt.setString(1, group.getId());
+            stmt.setTimestamp(2, until);
+            stmt.setInt(3, MAX_OBJECTS);
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    boards.add(
+                        new Board(
+                            rs.getString("id"),
+                            group,
+                            getDocument(rs.getString("document")),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return boards;
+    }
+
     public static List<BoardRead> getBoardReads(Board board) throws SQLException, LocalConnectException {
         var reads = new ArrayList<BoardRead>();
         try (var stmt = sql.getPreparedStatement(
@@ -592,6 +638,56 @@ public class API {
         return events;
     }
 
+    public static List<Event> getGroupEvents(Group group, String untilId) throws SQLException, LocalConnectException {
+        Timestamp until;
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `events` WHERE `id` = ?"
+        )) {
+            stmt.setString(1, untilId);
+
+            try (var rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new LocalConnectException(
+                        HttpStatuses.NOT_FOUND,
+                        APIErrorType.BOARD_NOT_FOUND
+                    );
+                }
+
+                until = rs.getTimestamp("created_at");
+            }
+        }
+
+        var events = new ArrayList<Event>();
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `events` WHERE `author` in (SELECT `id` FROM `users` WHERE `group` = ?)"
+                + " AND `created_at` < ?"
+                + " ORDER BY `date` ASC LIMIT ?"
+        )) {
+            stmt.setString(1, group.getId());
+            stmt.setTimestamp(2, until);
+            stmt.setInt(3, MAX_OBJECTS);
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    var id = rs.getString("id");
+
+                    events.add(
+                        new Event(
+                            id,
+                            getUser(rs.getString("author")),
+                            getDocument(rs.getString("document")),
+                            rs.getTimestamp("date"),
+                            getEventAttendances(id),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return events;
+    }
+
     public static Post getPost(String id) throws SQLException, LocalConnectException {
         try (var stmt = sql.getPreparedStatement("SELECT * FROM `posts` WHERE `id` = ?")) {
             stmt.setString(1, id);
@@ -666,6 +762,55 @@ public class API {
         return posts;
     }
 
+    public static List<Post> getUserPosts(User user, String untilId) throws SQLException, LocalConnectException {
+        Timestamp until;
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `posts` WHERE `id` = ?"
+        )) {
+            stmt.setString(1, untilId);
+
+            try (var rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new LocalConnectException(
+                        HttpStatuses.NOT_FOUND,
+                        APIErrorType.BOARD_NOT_FOUND
+                    );
+                }
+
+                until = rs.getTimestamp("created_at");
+            }
+        }
+
+        var posts = new ArrayList<Post>();
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `posts` WHERE `author` = ?"
+                + " AND `created_at` < ?"
+                + " ORDER BY `created_at` DESC LIMIT ?"
+        )) {
+            stmt.setString(1, user.getId());
+            stmt.setTimestamp(2, until);
+            stmt.setInt(3, MAX_OBJECTS);
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    var id = rs.getString("id");
+
+                    posts.add(
+                        new Post(
+                            id,
+                            getUser(rs.getString("author")),
+                            getDocument(rs.getString("document")),
+                            getPostLikes(id),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return posts;
+    }
+
     public static List<Post> getGroupPosts(Group group) throws SQLException, LocalConnectException {
         var posts = new ArrayList<Post>();
         try (var stmt = sql.getPreparedStatement(
@@ -674,6 +819,55 @@ public class API {
         )) {
             stmt.setString(1, group.getId());
             stmt.setInt(2, MAX_OBJECTS);
+
+            try (var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    var id = rs.getString("id");
+
+                    posts.add(
+                        new Post(
+                            id,
+                            getUser(rs.getString("author")),
+                            getDocument(rs.getString("document")),
+                            getPostLikes(id),
+                            rs.getTimestamp("created_at")
+                        )
+                    );
+                }
+            }
+        }
+
+        return posts;
+    }
+
+    public static List<Post> getGroupPosts(Group group, String untilId) throws SQLException, LocalConnectException {
+        Timestamp until;
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `posts` WHERE `id` = ?"
+        )) {
+            stmt.setString(1, untilId);
+
+            try (var rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new LocalConnectException(
+                        HttpStatuses.NOT_FOUND,
+                        APIErrorType.BOARD_NOT_FOUND
+                    );
+                }
+
+                until = rs.getTimestamp("created_at");
+            }
+        }
+
+        var posts = new ArrayList<Post>();
+        try (var stmt = sql.getPreparedStatement(
+            "SELECT * FROM `posts` WHERE `author` in (SELECT `id` FROM `users` WHERE `group` = ?)"
+                + " AND `created_at` < ?"
+                + " ORDER BY `created_at` DESC LIMIT ?"
+        )) {
+            stmt.setString(1, group.getId());
+            stmt.setTimestamp(2, until);
+            stmt.setInt(3, MAX_OBJECTS);
 
             try (var rs = stmt.executeQuery()) {
                 while (rs.next()) {
