@@ -939,7 +939,11 @@ public class API {
     }
 
     public static byte[] getImageData(String id) throws IOException, LocalConnectException {
-        var file = new File(LocalConnect.IMAGE_FILE_PREFIX + id + LocalConnect.IMAGE_FILE_SUFFIX);
+        var file = new File(LocalConnect.IMAGE_FILE_PREFIX + id + LocalConnect.IMAGE_JPEG_SUFFIX);
+        if (!file.exists()) {
+            file = new File(LocalConnect.IMAGE_FILE_PREFIX + id + LocalConnect.IMAGE_PNG_SUFFIX);
+        }
+
         var length = (int) file.length();
         var data = new byte[length];
 
@@ -1222,7 +1226,7 @@ public class API {
         return new Profile(id, user, hobbies, favorites, mottoes, createdAt);
     }
 
-    public static Image createImage(User user, byte[] bytes) throws SQLException, IOException {
+    public static Image createImage(User user, byte[] bytes) throws SQLException, IOException, LocalConnectException {
         var id = UUIDHelper.generate();
         var createdAt = new Timestamp(System.currentTimeMillis());
         createImageData(id, bytes);
@@ -1240,8 +1244,21 @@ public class API {
         return new Image(id, createdAt);
     }
 
-    private static void createImageData(String id, byte[] bytes) throws IOException {
-        var file = new File(LocalConnect.IMAGE_FILE_PREFIX + id + LocalConnect.IMAGE_FILE_SUFFIX);
+    private static void createImageData(String id, byte[] bytes) throws IOException, LocalConnectException {
+        String suffix;
+        if (bytes[0] == -1 && bytes[1] == -40) {
+            suffix = LocalConnect.IMAGE_JPEG_SUFFIX;
+        } else if (bytes[0] == -119 && bytes[1] == 80 && bytes[2] == 78 && bytes[3] == 71 &&
+                   bytes[4] == 13 && bytes[5] == 10 && bytes[6] == 26 && bytes[7] == 10) {
+            suffix = LocalConnect.IMAGE_PNG_SUFFIX;
+        } else {
+            throw new LocalConnectException(
+                HttpStatuses.BAD_REQUEST,
+                APIErrorType.INVALID_IMAGE_FORMAT
+            );
+        }
+
+        var file = new File(LocalConnect.IMAGE_FILE_PREFIX + id + suffix);
         if (!file.createNewFile()) {
             throw new IOException();
         }

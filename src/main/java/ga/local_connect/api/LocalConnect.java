@@ -19,7 +19,8 @@ import java.util.Properties;
 public class LocalConnect {
     private static final String CONFIG_FILE = "local_connect.properties";
     static final String IMAGE_FILE_PREFIX = "Images/";
-    static final String IMAGE_FILE_SUFFIX = ".jpg";
+    static final String IMAGE_JPEG_SUFFIX = ".jpg";
+    static final String IMAGE_PNG_SUFFIX = ".png";
 
     private static Properties config;
     private static SQLManager sql;
